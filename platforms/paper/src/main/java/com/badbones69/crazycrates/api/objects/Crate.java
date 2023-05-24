@@ -6,9 +6,11 @@ import com.badbones69.crazycrates.api.FileManager;
 import com.badbones69.crazycrates.api.managers.CosmicCrateManager;
 import com.badbones69.crazycrates.api.managers.CrateManager;
 import com.badbones69.crazycrates.enums.types.CrateType;
+import com.badbones69.crazycrates.holders.PreviewCrateHolder;
 import com.badbones69.crazycrates.listeners.PreviewListener;
 import com.badbones69.crazycrates.objects.CrateHologram;
 import de.tr7zw.changeme.nbtapi.NBTItem;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -330,7 +332,12 @@ public class Crate {
      * @return The preview as an Inventory object.
      */
     public Inventory getPreview(Player player, int page) {
-        Inventory inventory = player.getServer().createInventory(null, !borderToggle && (PreviewListener.playerInMenu(player) || maxPage > 1) && maxSlots == 9 ? maxSlots + 9 : maxSlots, previewName);
+        PreviewCrateHolder previewCrateHolder = new PreviewCrateHolder(null, this);
+        Inventory inventory = player.getServer().createInventory(previewCrateHolder,
+                !borderToggle && (PreviewListener.playerInMenu(player) || maxPage > 1) && maxSlots == 9 ? maxSlots + 9 : maxSlots,
+                PlaceholderAPI.setPlaceholders(player, previewName));
+        previewCrateHolder.setInventory(inventory);
+
         setDefaultItems(inventory, player);
 
         for (ItemStack item : getPageItems(page)) {

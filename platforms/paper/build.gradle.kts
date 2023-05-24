@@ -21,6 +21,7 @@ repositories {
 
 dependencies {
     api(project(":crazycrates-api"))
+    compileOnly(fileTree("$rootDir/libs"))
 
     compileOnly(libs.papermc)
 
@@ -32,7 +33,7 @@ dependencies {
     compileOnly(libs.holographic.displays)
     compileOnly(libs.decent.holograms)
     compileOnly(libs.cmi.api)
-    compileOnly(libs.cmi.lib)
+   // compileOnly(libs.cmi.lib)
 
     compileOnly(libs.placeholder.api)
 
