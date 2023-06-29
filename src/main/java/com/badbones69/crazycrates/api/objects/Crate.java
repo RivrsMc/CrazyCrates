@@ -6,6 +6,7 @@ import com.badbones69.crazycrates.api.FileManager;
 import com.badbones69.crazycrates.api.managers.CosmicCrateManager;
 import com.badbones69.crazycrates.api.managers.CrateManager;
 import com.badbones69.crazycrates.enums.types.CrateType;
+import com.badbones69.crazycrates.holders.CrateHolder;
 import com.badbones69.crazycrates.holders.PreviewCrateHolder;
 import com.badbones69.crazycrates.listeners.PreviewListener;
 import com.badbones69.crazycrates.objects.CrateHologram;
@@ -307,7 +308,7 @@ public class Crate {
      * @return True if it is the crate menu and false if not.
      */
     public boolean isCrateMenu(InventoryView view) {
-        return view != null && isCrateMenu(view.getTitle());
+        return view != null && (view.getTopInventory().getHolder() instanceof CrateHolder || isCrateMenu(view.getTitle()));
     }
     
     /**

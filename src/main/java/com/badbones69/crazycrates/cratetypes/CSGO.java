@@ -6,6 +6,7 @@ import com.badbones69.crazycrates.api.CrazyManager;
 import com.badbones69.crazycrates.api.objects.Crate;
 import com.badbones69.crazycrates.api.objects.Prize;
 import com.badbones69.crazycrates.enums.types.KeyType;
+import com.badbones69.crazycrates.holders.CrateHolder;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -65,8 +66,10 @@ public class CSGO implements Listener {
     }
 
     public static void openCSGO(Player player, Crate crate, KeyType keyType, boolean checkHand) {
-        Inventory inv = plugin.getServer().createInventory(null, 27, PlaceholderAPI.setPlaceholders(player, Methods.sanitizeColor(crate.getFile().getString("Crate.CrateName"))));
+        Inventory inv = plugin.getServer().createInventory(new CrateHolder(null, crate), 27, PlaceholderAPI.setPlaceholders(player, Methods.sanitizeColor(crate.getFile().getString("Crate.CrateName"))));
         setGlass(inv);
+        //noinspection DataFlowIssue
+        ((CrateHolder) inv.getHolder()).setInventory(inv);
 
         for (int i = 9; i > 8 && i < 18; i++) {
             inv.setItem(i, crate.pickPrize(player).getDisplayItem());
