@@ -1,66 +1,33 @@
 plugins {
-    id("paper-plugin")
-    id("publish-task")
-
-    id("xyz.jpenilla.run-paper") version "2.1.0"
+    id("root-plugin")
 }
 
-repositories {
-    flatDir {
-        dirs("libs")
-    }
-}
+defaultTasks("build")
 
-dependencies {
-    api(project(":crazycrates-api"))
-
-    compileOnly("cmi-api:CMI-API")
-    compileOnly("cmi-lib:CMILib")
-
-    compileOnly(libs.decent.holograms)
-    compileOnly(libs.fancy.holograms)
-    compileOnly(libs.fancy.npcs)
-
-    compileOnly(libs.placeholder.api)
-    compileOnly(libs.itemsadder.api)
-
-    implementation(libs.bstats.bukkit)
-
-    implementation(libs.triumph.cmds)
-
-    implementation(libs.nbt.api)
-}
+rootProject.group = "com.badbones69.crazycrates"
+rootProject.description = "Add unlimited crates to your server with 10 different crate types to choose from!"
+rootProject.version = "1.15"
 
 tasks {
-    reobfJar {
-        val file = File("$rootDir/jars")
+    assemble {
+        val jarsDir = File("$rootDir/jars")
+        if (jarsDir.exists()) jarsDir.delete()
 
-        if (!file.exists()) file.mkdirs()
+        subprojects.forEach { project ->
+            dependsOn(":${project.name}:build")
 
-        outputJar.set(layout.buildDirectory.file("$file/${rootProject.name}-${rootProject.version}.jar"))
-    }
+            doLast {
+                if (!jarsDir.exists()) jarsDir.mkdirs()
 
-    shadowJar {
-        listOf(
-            "de.tr7zw.changeme.nbtapi",
-            "dev.triumphteam",
-            "org.bstats"
-        ).forEach { pack -> relocate(pack, "${rootProject.group}.$pack") }
-    }
+                if (project.name == "core") return@doLast
 
-    runServer {
-        minecraftVersion("1.20")
-    }
+                val file = file("${project.buildDir}/libs/${rootProject.name}-${rootProject.version}.jar")
 
-    processResources {
-        filesMatching("plugin.yml") {
-            expand(
-                "name" to rootProject.name,
-                "group" to rootProject.group,
-                "version" to rootProject.version,
-                "description" to rootProject.description,
-                "website" to "https://modrinth.com/plugin/${rootProject.name.lowercase()}"
-            )
+                copy {
+                    from(file)
+                    into(jarsDir)
+                }
+            }
         }
     }
 }

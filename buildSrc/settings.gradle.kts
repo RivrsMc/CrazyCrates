@@ -1,17 +1,7 @@
 dependencyResolutionManagement {
-    versionCatalogs {
-        create("libs") {
-            from(files("../gradle/libs.versions.toml"))
-        }
-    }
-
     repositories {
+        maven("https://repo.papermc.io/repository/maven-public/")
+
         gradlePluginPortal()
-
-        maven("https://repo.crazycrew.us/first-party/")
-
-        maven("https://repo.crazycrew.us/third-party/")
-
-        maven("https://repo.crazycrew.us/releases/")
     }
 }

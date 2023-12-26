@@ -18,7 +18,7 @@
   <p align="center">
     A crates plugin that offers quality crates with ease!
     <br />
-    <a href="https://github.com/Crazy-Crew/CrazyCrates/wiki"><strong>Explore the docs »</strong></a>
+    <a href="https://docs.crazycrew.us/crazycrates/home"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/Crazy-Crew/CrazyCrates/issues">Report Bug</a>
@@ -68,9 +68,9 @@ A list of things necessary to make sure you can build CrazyCrates properly.
    git clone https://github.com/Crazy-Crew/CrazyCrates.git
    ```
 2. Open the repository using Intellij IDEA & wait until it finishes downloading/indexing.
-3. Run the build task.
+3. Run the assemble task.
    ```gradle
-   ./gradlew build
+   ./gradlew assemble
    ```
 
 ## Roadmap
