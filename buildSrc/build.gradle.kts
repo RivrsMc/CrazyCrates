@@ -3,7 +3,13 @@ plugins {
 }
 
 dependencies {
-    implementation("io.papermc.paperweight", "paperweight-userdev", "1.5.5")
+    implementation(libs.paperweight)
 
-    implementation("com.github.johnrengelman", "shadow", "8.1.1")
+    implementation(libs.shadowjar)
+
+    implementation(libs.runpaper)
+
+    implementation(libs.modrinth)
+
+    implementation(libs.hangar)
 }

@@ -21,9 +21,9 @@
     <a href="https://docs.crazycrew.us/crazycrates/home"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/Crazy-Crew/CrazyCrates/issues">Report Bug</a>
+    <a href="https://github.com/Crazy-Crew/CrazyCrates/issues/new?assignees=ryderbelserion&labels=bug&projects=&template=bugs.yml&title=%5BBug+Report%5D%3A+">Report Bug</a>
     ·
-    <a href="https://github.com/Crazy-Crew/CrazyCrates/discussions/categories/features">Request Feature</a>
+    <a href="https://github.com/Crazy-Crew/CrazyCrates/issues/new?assignees=&labels=feature&template=feature_request.md&title=%5BFeature%5D+">Request Feature</a>
     ·
     <a href="https://discord.gg/badbones-s-live-chat-182615261403283459">Get Support</a>
   </p>
@@ -48,37 +48,33 @@
 </details>
 
 ### Resource Page
-<a href="https://modrinth.com/plugin/crazycrates">![Modrinth](https://raw.githubusercontent.com/intergrav/devins-badges/v3/assets/compact/available/modrinth_46h.png)</a>
+[![Hangar](https://raw.githubusercontent.com/intergrav/devins-badges/v3/assets/compact/available/hangar_46h.png)](https://hangar.papermc.io/CrazyCrew/CrazyCrates)
+[![Modrinth](https://raw.githubusercontent.com/intergrav/devins-badges/v3/assets/compact/available/modrinth_46h.png)](https://modrinth.com/user/plugin/crazycrates)
 
 ## Getting Started
-
 How to get started with contributing / maintaining your own version of CrazyCrates!
 
 ### Prerequisites
-
 A list of things necessary to make sure you can build CrazyCrates properly.
 * Intellij IDEA
     * > https://www.jetbrains.com/idea/download/
 * Gradle
 
 ### Installation
-
 1. Clone the repo
    ```sh
    git clone https://github.com/Crazy-Crew/CrazyCrates.git
    ```
 2. Open the repository using Intellij IDEA & wait until it finishes downloading/indexing.
-3. Run the assemble task.
+3. Run the clean assemble task.
    ```gradle
-   ./gradlew assemble
+   ./gradlew clean assemble
    ```
 
 ## Roadmap
-
 Check our public [trello board](https://trello.com/b/bzQ5TwXo) for our current plans, any bugs and general tracking of the project progress.
 
 ## Contributing
-
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/yourfeature`)
 3. Commit your Changes (`git commit -m 'your amazing feature.'`)
@@ -86,11 +82,10 @@ Check our public [trello board](https://trello.com/b/bzQ5TwXo) for our current p
 5. Open a Pull Request to the `main` branch to add your feature/fix.
 
 ## License
-
 Distributed under the MIT License. See [`LICENSE`](/LICENSE) for more information.
 
 [discord-shield]: https://img.shields.io/discord/182615261403283459.svg?style=flat&logo=appveyor
-[discord-url]: https://discord.gg/crazycrew
+[discord-url]: https://discord.gg/badbones-s-live-chat-182615261403283459
 
 [contributors-shield]: https://img.shields.io/github/contributors/Crazy-Crew/CrazyCrates.svg?style=flat&logo=appveyor
 [contributors-url]: https://github.com/Crazy-Crew/CrazyCrates/graphs/contributors

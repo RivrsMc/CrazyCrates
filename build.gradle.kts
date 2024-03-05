@@ -1,31 +1,38 @@
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
+
 plugins {
     id("root-plugin")
 }
 
-defaultTasks("build")
-
-rootProject.group = "com.badbones69.crazycrates"
-rootProject.description = "Add unlimited crates to your server with 10 different crate types to choose from!"
-rootProject.version = "1.15"
-
 tasks {
     assemble {
         val jarsDir = File("$rootDir/jars")
-        if (jarsDir.exists()) jarsDir.delete()
 
-        subprojects.forEach { project ->
+        doFirst {
+            delete(jarsDir)
+
+            jarsDir.mkdirs()
+        }
+
+        subprojects.filter { it.name == "paper" || it.name == "fabric" }.forEach { project ->
             dependsOn(":${project.name}:build")
 
             doLast {
-                if (!jarsDir.exists()) jarsDir.mkdirs()
+                runCatching {
+                    val file = File("$jarsDir/${project.name.uppercaseFirstChar().lowercase()}")
 
-                if (project.name == "core") return@doLast
+                    file.mkdirs()
 
-                val file = file("${project.buildDir}/libs/${rootProject.name}-${rootProject.version}.jar")
-
-                copy {
-                    from(file)
-                    into(jarsDir)
+                    copy {
+                        from(project.layout.buildDirectory.file("libs/${rootProject.name}-${project.version}.jar"))
+                        into(file)
+                    }
+                }.onSuccess {
+                    // Delete to save space on jenkins.
+                    delete(project.layout.buildDirectory.get())
+                    delete(rootProject.layout.buildDirectory.get())
+                }.onFailure {
+                    println("Failed to copy file out of build folder into jars directory: Likely does not exist.")
                 }
             }
         }
