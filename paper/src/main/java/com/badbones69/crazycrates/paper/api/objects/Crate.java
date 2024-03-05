@@ -1,13 +1,15 @@
 package com.badbones69.crazycrates.paper.api.objects;
 
+import com.badbones69.crazycrates.api.enums.types.CrateType;
+import com.badbones69.crazycrates.api.objects.CrateHologram;
 import com.badbones69.crazycrates.paper.CrazyCrates;
 import com.badbones69.crazycrates.paper.Methods;
 import com.badbones69.crazycrates.paper.api.FileManager;
+import com.badbones69.crazycrates.paper.api.holders.CrateHolder;
+import com.badbones69.crazycrates.paper.api.holders.PreviewCrateHolder;
 import com.badbones69.crazycrates.paper.api.managers.CosmicCrateManager;
 import com.badbones69.crazycrates.paper.api.managers.CrateManager;
-import com.badbones69.crazycrates.api.enums.types.CrateType;
 import com.badbones69.crazycrates.paper.listeners.PreviewListener;
-import com.badbones69.crazycrates.api.objects.CrateHologram;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Location;
@@ -18,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

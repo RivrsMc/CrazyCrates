@@ -1,6 +1,7 @@
 package com.badbones69.crazycrates.paper.listeners;
 
 import com.badbones69.crazycrates.paper.api.FileManager.Files;
+import com.badbones69.crazycrates.paper.api.holders.PreviewCrateHolder;
 import com.badbones69.crazycrates.paper.api.objects.Crate;
 import com.badbones69.crazycrates.paper.api.objects.ItemBuilder;
 import org.bukkit.configuration.file.FileConfiguration;

@@ -1,6 +1,6 @@
-package com.badbones69.crazycrates.holders;
+package com.badbones69.crazycrates.paper.api.holders;
 
-import com.badbones69.crazycrates.api.objects.Crate;
+import com.badbones69.crazycrates.paper.api.objects.Crate;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
