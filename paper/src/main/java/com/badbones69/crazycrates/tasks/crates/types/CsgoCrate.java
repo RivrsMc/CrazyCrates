@@ -1,19 +1,17 @@
 package com.badbones69.crazycrates.tasks.crates.types;
 
-import com.badbones69.crazycrates.api.objects.Crate;
-import com.badbones69.crazycrates.api.objects.other.ItemBuilder;
-import com.badbones69.crazycrates.api.objects.Prize;
 import com.badbones69.crazycrates.api.PrizeManager;
-import org.bukkit.Material;
+import com.badbones69.crazycrates.api.builders.CrateBuilder;
+import com.badbones69.crazycrates.api.objects.Crate;
+import com.badbones69.crazycrates.api.objects.Prize;
+import com.badbones69.crazycrates.api.utils.MiscUtils;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import us.crazycrew.crazycrates.api.enums.types.KeyType;
-import com.badbones69.crazycrates.api.builders.CrateBuilder;
-import com.badbones69.crazycrates.api.utils.MiscUtils;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class CsgoCrate extends CrateBuilder {
@@ -111,11 +109,6 @@ public class CsgoCrate extends CrateBuilder {
     }
 
     private void populate() {
-
-        ItemStack itemStack = new ItemBuilder().setMaterial(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build();
-        setItem(4, itemStack);
-        setItem(4 + 18, itemStack);
-
         // Set display items.
         for (int index = 9; index > 8 && index < 18; index++) {
             setItem(index, getCrate().pickPrize(getPlayer()).getDisplayItem(getPlayer()));
