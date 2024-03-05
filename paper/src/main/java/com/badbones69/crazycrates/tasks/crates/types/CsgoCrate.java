@@ -111,49 +111,10 @@ public class CsgoCrate extends CrateBuilder {
     }
 
     private void populate() {
-        HashMap<Integer, ItemStack> glass = new HashMap<>();
-
-        for (int index = 0; index < 10; index++) {
-            if (index < 9 && index != 3) glass.put(index, getInventory().getItem(index));
-        }
-
-        for (int index : glass.keySet()) {
-            if (getInventory().getItem(index) == null) {
-                setCustomGlassPane(index);
-                setCustomGlassPane(index + 18);
-            }
-        }
-
-        for (int index = 1; index < 10; index++) {
-            if (index < 9 && index != 4) glass.put(index, getInventory().getItem(index));
-        }
-
-        setItem(0, glass.get(1));
-
-        setItem(1, glass.get(2));
-        setItem(1 + 18, glass.get(2));
-
-        setItem(2, glass.get(3));
-        setItem(2 + 18, glass.get(3));
-
-        setItem(3, glass.get(5));
-        setItem(3 + 18, glass.get(5));
 
         ItemStack itemStack = new ItemBuilder().setMaterial(Material.BLACK_STAINED_GLASS_PANE).setName(" ").build();
         setItem(4, itemStack);
         setItem(4 + 18, itemStack);
-
-        setItem(5, glass.get(6));
-        setItem(5 + 18, glass.get(6));
-
-        setItem(6, glass.get(7));
-        setItem(6 + 18, glass.get(7));
-
-        setItem(7, glass.get(8));
-        setItem(7 + 18, glass.get(8));
-
-        setCustomGlassPane(8);
-        setCustomGlassPane(8 + 18);
 
         // Set display items.
         for (int index = 9; index > 8 && index < 18; index++) {

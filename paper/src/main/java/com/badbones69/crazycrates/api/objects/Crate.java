@@ -4,6 +4,7 @@ import com.badbones69.crazycrates.api.builders.types.CrateTierMenu;
 import com.badbones69.crazycrates.api.enums.PersistentKeys;
 import com.badbones69.crazycrates.api.objects.other.ItemBuilder;
 import com.badbones69.crazycrates.tasks.crates.effects.SoundEffect;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.SoundCategory;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -36,7 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
 public class Crate {
-    
+
     private AbstractCrateManager manager;
     private final String name;
     private final String keyName;
@@ -167,7 +168,7 @@ public class Crate {
     public AbstractCrateManager getManager() {
         return this.manager;
     }
-    
+
     /**
      * Set the preview lines for a Crate.
      *
@@ -197,7 +198,7 @@ public class Crate {
 
         this.previewTierCrateRows = finalAmount;
     }
-    
+
     /**
      * Get the amount of lines the preview will show.
      *
@@ -206,7 +207,7 @@ public class Crate {
     public int getPreviewChestLines() {
         return this.previewChestLines;
     }
-    
+
     /**
      * Get the max amount of slots in the preview.
      *
@@ -215,7 +216,7 @@ public class Crate {
     public int getMaxSlots() {
         return this.maxSlots;
     }
-    
+
     /**
      * Check to see if a player can win a prize from a crate.
      *
@@ -343,7 +344,7 @@ public class Crate {
 
         return prizes.get(MiscUtils.useOtherRandom() ? ThreadLocalRandom.current().nextInt(prizes.size()) : new Random().nextInt(prizes.size()));
     }
-    
+
     /**
      * Picks a random prize based on BlackList Permissions and the Chance System. Spawns the display item at the location.
      *
@@ -358,21 +359,21 @@ public class Crate {
 
         return prize;
     }
-    
+
     /**
      * @return name the name of the crate.
      */
     public String getName() {
         return this.name;
     }
-    
+
     /**
      * @return the name of the crate's preview page.
      */
     public String getPreviewName() {
         return this.previewName;
     }
-    
+
     /**
      * Get if the preview is toggled on.
      *
@@ -381,7 +382,7 @@ public class Crate {
     public boolean isPreviewEnabled() {
         return this.previewToggle;
     }
-    
+
     /**
      * Get if the preview has an item border.
      *
@@ -390,7 +391,7 @@ public class Crate {
     public boolean isBorderToggle() {
         return this.borderToggle;
     }
-    
+
     /**
      * Get the item that shows as the preview border if enabled.
      *
@@ -399,7 +400,7 @@ public class Crate {
     public ItemBuilder getBorderItem() {
         return this.borderItem;
     }
-    
+
     /**
      * Get the name of the inventory the crate will have.
      *
@@ -408,7 +409,7 @@ public class Crate {
     public String getCrateInventoryName() {
         return this.crateInventoryName;
     }
-    
+
     /**
      * Gets the inventory of a preview of prizes for the crate.
      *
@@ -417,14 +418,14 @@ public class Crate {
     public Inventory getPreview(Player player) {
         return getPreview(player, this.plugin.getCrazyHandler().getInventoryManager().getPage(player), false, null);
     }
-    
+
     /**
      * Gets the inventory of a preview of prizes for the crate.
      *
      * @return the preview as an Inventory object.
      */
     public Inventory getPreview(Player player, int page, boolean isTier, Tier tier) {
-        CratePreviewMenu cratePreviewMenu = new CratePreviewMenu(this, player, !this.borderToggle && (this.inventoryManager.inCratePreview(player) || this.maxPage > 1) && this.maxSlots == 9 ? this.maxSlots + 9 : this.maxSlots, page, this.previewName, isTier, tier);
+        CratePreviewMenu cratePreviewMenu = new CratePreviewMenu(this, player, !this.borderToggle && (this.inventoryManager.inCratePreview(player) || this.maxPage > 1) && this.maxSlots == 9 ? this.maxSlots + 9 : this.maxSlots, page, PlaceholderAPI.setPlaceholders(player, this.previewName), isTier, tier);
 
         return cratePreviewMenu.build().getInventory();
     }
@@ -435,18 +436,18 @@ public class Crate {
      * @return the tier preview as an Inventory object.
      */
     public Inventory getTierPreview(Player player) {
-        CrateTierMenu crateTierMenu = new CrateTierMenu(getTiers(), this, player, !this.previewTierBorderToggle && (this.inventoryManager.inCratePreview(player)) && this.previewTierMaxSlots == 9 ? this.previewTierMaxSlots + 9 : this.previewTierMaxSlots, this.previewName);
+        CrateTierMenu crateTierMenu = new CrateTierMenu(getTiers(), this, player, !this.previewTierBorderToggle && (this.inventoryManager.inCratePreview(player)) && this.previewTierMaxSlots == 9 ? this.previewTierMaxSlots + 9 : this.previewTierMaxSlots, PlaceholderAPI.setPlaceholders(player, this.previewName));
 
         return crateTierMenu.build().getInventory();
     }
-    
+
     /**
      * @return the crate type of the crate.
      */
     public CrateType getCrateType() {
         return this.crateType;
     }
-    
+
     /**
      * @return the key as an item stack.
      */
@@ -472,7 +473,7 @@ public class Crate {
 
         return key.build();
     }
-    
+
     /**
      * @param amount The amount of keys you want.
      * @param player The player getting the key.
@@ -484,14 +485,14 @@ public class Crate {
 
         return key.build();
     }
-    
+
     /**
      * @return the key as an item stack with no nbt tags.
      */
     public ItemStack getKeyNoNBT() {
         return this.keyNoNBT.clone();
     }
-    
+
     /**
      * @param amount the amount of keys you want.
      *
@@ -504,21 +505,21 @@ public class Crate {
 
         return key;
     }
-    
+
     /**
      * @return the crates file.
      */
     public FileConfiguration getFile() {
         return this.file;
     }
-    
+
     /**
      * @return the prizes in the crate.
      */
     public List<Prize> getPrizes() {
         return this.prizes;
     }
-    
+
     /**
      * @param name name of the prize you want.
      * @return the prize you asked for.
@@ -530,7 +531,7 @@ public class Crate {
 
         return null;
     }
-    
+
     public Prize getPrize(ItemStack item) {
         ItemMeta itemMeta = item.getItemMeta();
 
@@ -538,21 +539,21 @@ public class Crate {
 
         return getPrize(container.get(PersistentKeys.crate_prize.getNamespacedKey(), PersistentDataType.STRING));
     }
-    
+
     /**
      * @return true if new players get keys and false if they do not.
      */
     public boolean doNewPlayersGetKeys() {
         return this.giveNewPlayerKeys;
     }
-    
+
     /**
      * @return the number of keys new players get.
      */
     public int getNewPlayerKeys() {
         return this.newPlayerKeys;
     }
-    
+
     /**
      * Add a new editor item to a prize in the crate.
      *
@@ -654,14 +655,14 @@ public class Crate {
 
         saveFile(items, path);
     }
-    
+
     /**
      * @return the max page for the preview.
      */
     public int getMaxPage() {
         return this.maxPage;
     }
-    
+
     /**
      * @return a list of the tiers for the crate. Will be empty if there are none.
      */
@@ -741,7 +742,7 @@ public class Crate {
 
         return items;
     }
-    
+
     /**
      * Loads all the preview items and puts them into a list.
      *
