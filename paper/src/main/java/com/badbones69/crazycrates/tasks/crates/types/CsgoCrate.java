@@ -4,7 +4,6 @@ import com.badbones69.crazycrates.api.builders.ItemBuilder;
 import com.badbones69.crazycrates.api.builders.types.features.CrateSpinMenu;
 import com.badbones69.crazycrates.api.enums.misc.Files;
 import com.badbones69.crazycrates.api.objects.Crate;
-import com.badbones69.crazycrates.api.objects.other.ItemBuilder;
 import com.badbones69.crazycrates.api.objects.Prize;
 import com.badbones69.crazycrates.api.PrizeManager;
 import com.badbones69.crazycrates.api.objects.gui.GuiSettings;
