@@ -1,10 +1,26 @@
 package com.badbones69.crazycrates.commands;
 
-import com.badbones69.crazycrates.api.objects.other.CrateLocation;
+import com.badbones69.crazycrates.api.objects.Crate;
+import com.badbones69.crazycrates.api.objects.crates.CrateLocation;
+import com.badbones69.crazycrates.commands.crates.types.admin.crates.CommandAddItem;
+import com.badbones69.crazycrates.commands.crates.types.admin.crates.CommandMigrate;
+import com.badbones69.crazycrates.commands.crates.types.admin.crates.migrator.enums.MigrationType;
 import com.badbones69.crazycrates.commands.relations.ArgumentRelations;
-import com.badbones69.crazycrates.commands.relations.MiscRelations;
-import com.badbones69.crazycrates.commands.subs.CrateBaseCommand;
-import com.badbones69.crazycrates.commands.subs.BaseKeyCommand;
+import com.badbones69.crazycrates.commands.crates.types.player.CommandHelp;
+import com.badbones69.crazycrates.commands.crates.types.admin.CommandAdmin;
+import com.badbones69.crazycrates.commands.crates.types.admin.CommandReload;
+import com.badbones69.crazycrates.commands.crates.types.admin.crates.CommandDebug;
+import com.badbones69.crazycrates.commands.crates.types.admin.crates.CommandList;
+import com.badbones69.crazycrates.commands.crates.types.admin.crates.CommandPreview;
+import com.badbones69.crazycrates.commands.crates.types.admin.crates.CommandSet;
+import com.badbones69.crazycrates.commands.crates.types.admin.crates.CommandTeleport;
+import com.badbones69.crazycrates.commands.crates.types.admin.keys.CommandGive;
+import com.badbones69.crazycrates.commands.crates.types.admin.keys.CommandOpen;
+import com.badbones69.crazycrates.commands.crates.types.admin.keys.CommandTake;
+import com.badbones69.crazycrates.commands.crates.types.player.CommandKey;
+import com.badbones69.crazycrates.commands.crates.types.player.CommandTransfer;
+import com.badbones69.crazycrates.tasks.crates.CrateManager;
+import com.ryderbelserion.vital.paper.api.builders.PlayerBuilder;
 import dev.triumphteam.cmd.bukkit.BukkitCommandManager;
 import dev.triumphteam.cmd.core.suggestion.SuggestionKey;
 import org.bukkit.command.CommandSender;
@@ -16,60 +32,119 @@ import java.util.List;
 
 public class CommandManager {
 
-    @NotNull
-    private final CrazyCrates plugin = CrazyCrates.get();
+    private static final CrazyCrates plugin = CrazyCrates.getPlugin();
+    private static final CrateManager crateManager = plugin.getCrateManager();
 
-    @NotNull
-    private final BukkitCommandManager<CommandSender> bukkitCommandManager = this.plugin.getCommandManager();
+    private static final BukkitCommandManager<CommandSender> commandManager = BukkitCommandManager.create(plugin);
 
     /**
      * Loads commands.
      */
-    public void load() {
-        new MiscRelations().build();
+    public static void load() {
         new ArgumentRelations().build();
 
-        this.bukkitCommandManager.registerSuggestion(SuggestionKey.of("crates"), (sender, context) -> {
-            List<String> crates = new ArrayList<>(this.plugin.getFileManager().getAllCratesNames());
+        commandManager.registerSuggestion(SuggestionKey.of("crates"), (sender, context) -> {
+            final List<String> crates = new ArrayList<>(crateManager.getCrateNames());
 
             crates.add("Menu");
 
             return crates;
         });
 
-        this.bukkitCommandManager.registerSuggestion(SuggestionKey.of("key-types"), (sender, context) -> List.of("virtual", "v", "physical", "p"));
+        commandManager.registerSuggestion(SuggestionKey.of("keys"), (sender, context) -> List.of("virtual", "v", "physical", "p"));
 
-        this.bukkitCommandManager.registerSuggestion(SuggestionKey.of("online-players"), (sender, context) -> this.plugin.getServer().getOnlinePlayers().stream().map(Player::getName).toList());
+        commandManager.registerSuggestion(SuggestionKey.of("admin-keys"), (sender, context) -> List.of("virtual", "v", "physical", "p", "free", "f"));
 
-        this.bukkitCommandManager.registerSuggestion(SuggestionKey.of("locations"), (sender, context) -> this.plugin.getCrateManager().getCrateLocations().stream().map(CrateLocation::getID).toList());
+        commandManager.registerSuggestion(SuggestionKey.of("players"), (sender, context) -> plugin.getServer().getOnlinePlayers().stream().map(Player::getName).toList());
 
-        this.bukkitCommandManager.registerSuggestion(SuggestionKey.of("prizes"), (sender, context) -> {
-            List<String> numbers = new ArrayList<>();
+        commandManager.registerSuggestion(SuggestionKey.of("locations"), (sender, context) -> crateManager.getCrateLocations().stream().map(CrateLocation::getID).toList());
 
-            this.plugin.getCrateManager().getCrateFromName(context.getArgs().get(0)).getPrizes().forEach(prize -> numbers.add(prize.getPrizeNumber()));
+        commandManager.registerSuggestion(SuggestionKey.of("prizes"), (sender, context) -> {
+            final List<String> prizes = new ArrayList<>();
 
-            return numbers;
+            Crate crate = crateManager.getCrateFromName(context.getFirst());
+
+            if (crate != null) {
+                crate.getPrizes().forEach(prize -> prizes.add(prize.getSectionName()));
+            }
+
+            return prizes;
         });
 
-        this.bukkitCommandManager.registerSuggestion(SuggestionKey.of("tiers"), (sender, context) -> {
-            List<String> numbers = new ArrayList<>();
+        commandManager.registerSuggestion(SuggestionKey.of("tiers"), (sender, context) -> {
+            final List<String> tiers = new ArrayList<>();
 
-            this.plugin.getCrateManager().getCrateFromName(context.getArgs().get(0)).getTiers().forEach(tier -> numbers.add(tier.getName()));
+            Crate crate = crateManager.getCrateFromName(context.getFirst());
 
-            return numbers;
+            if (crate != null) {
+                crate.getTiers().forEach(tier -> tiers.add(tier.getName()));
+            }
+
+            return tiers;
         });
 
-        this.bukkitCommandManager.registerSuggestion(SuggestionKey.of("numbers"), (sender, context) -> {
-            List<String> numbers = new ArrayList<>();
+        commandManager.registerSuggestion(SuggestionKey.of("numbers"), (sender, context) -> {
+            final List<String> numbers = new ArrayList<>();
 
             for (int i = 1; i <= 100; i++) numbers.add(String.valueOf(i));
 
             return numbers;
         });
 
-        this.bukkitCommandManager.registerArgument(CrateBaseCommand.CustomPlayer.class, (sender, context) -> new CrateBaseCommand.CustomPlayer(context));
+        commandManager.registerSuggestion(SuggestionKey.of("doubles"), (sender, context) -> {
+            final List<String> numbers = new ArrayList<>();
 
-        this.bukkitCommandManager.registerCommand(new CrateBaseCommand());
-        this.bukkitCommandManager.registerCommand(new BaseKeyCommand());
+            int count = 0;
+
+            while (count <= 1000) {
+                double x = count / 10.0;
+
+                numbers.add(String.valueOf(x));
+
+                count++;
+            }
+
+            return numbers;
+        });
+
+        commandManager.registerSuggestion(SuggestionKey.of("migrators"), (sender, context) -> {
+            final List<String> migrators = new ArrayList<>();
+
+            for (MigrationType value : MigrationType.values()) {
+                final String name = value.getName();
+
+                migrators.add(name);
+            }
+
+            return migrators;
+        });
+
+        commandManager.registerArgument(PlayerBuilder.class, (sender, context) -> new PlayerBuilder(context));
+
+        List.of(
+                new CommandTeleport(),
+                new CommandAddItem(),
+                new CommandPreview(),
+                new CommandDebug(),
+                new CommandList(),
+                new CommandSet(),
+
+                new CommandGive(),
+                new CommandOpen(),
+                new CommandTake(),
+
+                new CommandMigrate(),
+                new CommandReload(),
+                new CommandAdmin(),
+
+                new CommandTransfer(),
+                new CommandKey(),
+
+                new CommandHelp()
+        ).forEach(commandManager::registerCommand);
+    }
+
+    public static @NotNull BukkitCommandManager<CommandSender> getCommandManager() {
+        return commandManager;
     }
 }

@@ -1,57 +1,94 @@
 package com.badbones69.crazycrates.support.holograms.types;
 
 import com.Zrips.CMI.CMI;
+import com.Zrips.CMI.Modules.Display.CMIBillboard;
 import com.Zrips.CMI.Modules.Holograms.CMIHologram;
-import com.badbones69.crazycrates.common.crates.CrateHologram;
+import com.badbones69.crazycrates.api.objects.crates.CrateHologram;
+import net.Zrips.CMILib.Colors.CMIChatColor;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import net.Zrips.CMILib.Container.CMILocation;
 import com.badbones69.crazycrates.api.objects.Crate;
-import org.bukkit.block.Block;
 import com.badbones69.crazycrates.support.holograms.HologramManager;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import us.crazycrew.crazycrates.api.enums.types.CrateType;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CMIHologramsSupport extends HologramManager {
 
-    private final Map<Block, CMIHologram> holograms = new HashMap<>();
+    private final com.Zrips.CMI.Modules.Holograms.HologramManager hologramManager = CMI.getInstance().getHologramManager();
 
     @Override
-    public void createHologram(Block block, Crate crate) {
-        CrateHologram crateHologram = crate.getHologram();
+    public void createHologram(final Location location, final Crate crate, final String id) {
+        if (crate.getCrateType() == CrateType.menu) return;
 
-        if (!crateHologram.isEnabled()) return;
+        final CrateHologram crateHologram = crate.getHologram();
 
-        double height = crateHologram.getHeight();
+        if (!crateHologram.isEnabled()) {
+            removeHologram(id);
 
-        CMILocation location = new CMILocation(block.getLocation().add(0.5, height, 0.5));
+            return;
+        }
 
-        CMIHologram hologram = new CMIHologram("CrazyCrates-" + UUID.randomUUID(), location);
+        // We don't want to create a new one if one already exists.
+        if (exists(id)) return;
 
-        hologram.setLines(crateHologram.getMessages());
+        final CMIHologram hologram = new CMIHologram(name(id), new CMILocation(location.clone().add(getVector(crate))));
+
+        hologram.setNewDisplayMethod(true);
+        hologram.setBillboard(CMIBillboard.CENTER);
+
+        final String color = crateHologram.getBackgroundColor();
+
+        if (color.equalsIgnoreCase("transparent")) {
+            hologram.setBackgroundAlpha(0);
+        } else {
+            hologram.setBackgroundColor(CMIChatColor.getClosest(color));
+        }
 
         hologram.setShowRange(crateHologram.getRange());
+        hologram.setLines(lines(crateHologram));
 
-        CMI.getInstance().getHologramManager().addHologram(hologram);
+        if (crateHologram.getUpdateInterval() != -1) {
+            hologram.setUpdateIntervalSec(crateHologram.getUpdateInterval());
+        }
 
-        hologram.update();
+        this.hologramManager.addHologram(hologram);
 
-        this.holograms.put(block, hologram);
+        location.getNearbyEntitiesByType(Player.class, crateHologram.getRange()).forEach(player -> this.hologramManager.handleHoloUpdates(player, hologram.getLocation()));
     }
 
     @Override
-    public void removeHologram(Block block) {
-        if (!this.holograms.containsKey(block)) return;
+    public void removeHologram(final String id) {
+        final CMIHologram hologram = this.hologramManager.getByName(name(id));
 
-        CMIHologram hologram = this.holograms.get(block);
-
-        this.holograms.remove(block);
-
-        hologram.remove();
+        if (hologram != null) {
+            hologram.remove();
+        }
     }
 
     @Override
-    public void removeAllHolograms() {
-        this.holograms.forEach((key, value) -> value.remove());
-        this.holograms.clear();
+    public boolean exists(final String id) {
+        return this.hologramManager.getByName(name(id)) != null;
+    }
+
+    @Override
+    public void purge(final boolean isShutdown) {
+        final String name = this.plugin.getName().toLowerCase();
+
+        final List<String> holograms = new ArrayList<>() {{
+            hologramManager.getHolograms().forEach((id, hologram) -> {
+                if (id.startsWith(name + "-")) {
+                    add(id.replace(name + "-", ""));
+                }
+            });
+        }};
+
+        holograms.forEach(this::removeHologram);
+    }
+
+    @Override
+    public final String getName() {
+        return "CMI";
     }
 }

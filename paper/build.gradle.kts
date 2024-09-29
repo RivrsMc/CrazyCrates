@@ -1,60 +1,83 @@
 plugins {
-    id("paper-plugin")
+    alias(libs.plugins.runPaper)
+    alias(libs.plugins.shadow)
+
+    `paper-plugin`
+}
+
+repositories {
+    maven("https://repo.fancyplugins.de/releases")
 }
 
 dependencies {
-    api(project(":common"))
+    compileOnly(libs.paper)
 
-    implementation(libs.cluster.paper)
+    compileOnly(fileTree("$projectDir/libs/compile").include("*.jar"))
 
-    implementation(libs.triumphcmds)
+    implementation(libs.triumph.cmds)
 
-    //implementation(libs.triumphgui)
+    implementation(libs.vital.paper) {
+        exclude("org.yaml")
+    }
 
-    implementation(libs.metrics)
+    implementation(project(":common"))
 
-    implementation(libs.nbtapi)
+    compileOnly(libs.excellentcrates)
+    compileOnly(libs.nightcore)
 
-    compileOnly(libs.holographicdisplays)
+    compileOnly(libs.decent.holograms)
 
-    compileOnly(libs.decentholograms)
+    compileOnly(libs.fancy.holograms)
+
+    compileOnly(libs.headdatabaseapi)
 
     compileOnly(libs.placeholderapi)
 
-    compileOnly(libs.itemsadder)
-
     compileOnly(libs.oraxen)
-
-    compileOnly(fileTree("libs").include("*.jar"))
 }
 
 tasks {
+    runServer {
+        jvmArgs("-Dnet.kyori.ansi.colorLevel=truecolor")
+
+        defaultCharacterEncoding = Charsets.UTF_8.name()
+
+        minecraftVersion(libs.versions.minecraft.get())
+    }
+
+    assemble {
+        dependsOn(shadowJar)
+
+        doLast {
+            copy {
+                from(shadowJar.get())
+                into(rootProject.projectDir.resolve("jars"))
+            }
+        }
+    }
+
     shadowJar {
+        archiveBaseName.set(rootProject.name)
+        archiveClassifier.set("")
+
         listOf(
-            "com.ryderbelserion.cluster.paper",
-            "de.tr7zw.changeme.nbtapi",
-            "dev.triumphteam.cmd",
-            "org.bstats"
+            "com.ryderbelserion.vital",
+            "dev.triumphteam.cmd"
         ).forEach {
             relocate(it, "libs.$it")
         }
     }
 
     processResources {
-        val properties = hashMapOf(
-            "name" to rootProject.name,
-            "version" to project.version,
-            "group" to rootProject.group,
-            "description" to rootProject.description,
-            "apiVersion" to providers.gradleProperty("apiVersion").get(),
-            "authors" to providers.gradleProperty("authors").get(),
-            "website" to providers.gradleProperty("website").get()
-        )
+        inputs.properties("name" to rootProject.name)
+        inputs.properties("version" to project.version)
+        inputs.properties("group" to project.group)
+        inputs.properties("apiVersion" to libs.versions.minecraft.get())
+        inputs.properties("description" to project.properties["description"])
+        inputs.properties("website" to project.properties["website"])
 
-        inputs.properties(properties)
-
-        filesMatching("plugin.yml") {
-            expand(properties)
+        filesMatching("paper-plugin.yml") {
+            expand(inputs.properties)
         }
     }
 }

@@ -1,100 +1,80 @@
 package com.badbones69.crazycrates.commands.relations;
 
 import com.badbones69.crazycrates.commands.MessageManager;
+import dev.triumphteam.cmd.bukkit.message.BukkitMessageKey;
+import dev.triumphteam.cmd.core.extention.meta.MetaKey;
 import dev.triumphteam.cmd.core.message.MessageKey;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 import com.badbones69.crazycrates.api.enums.Messages;
-import com.badbones69.crazycrates.api.utils.MsgUtils;
+import java.util.Optional;
 
 public class ArgumentRelations extends MessageManager {
 
-    private String getContext(String subCommand, String commandOrder) {
-        String correctUsage = null;
+    private String getContext(String command, String order) {
+        if (command.isEmpty() || order.isEmpty()) return "";
 
-        switch (subCommand) {
-            case "transfer" -> correctUsage = commandOrder + "<crate-name> <player-name> <amount>";
-            case "debug", "open", "set" -> correctUsage = commandOrder + "<crate-name>";
-            case "tp" -> correctUsage = commandOrder + "<id>";
-            case "additem" -> correctUsage = commandOrder + "<crate-name> <prize-number> <chance> [tier]";
-            case "preview", "forceopen" -> correctUsage = commandOrder + "<crate-name> <player-name>";
-            case "open-others" -> correctUsage = commandOrder + "<crate-name> <player-name> [key-type]";
-            case "mass-open" -> correctUsage = commandOrder + "<crate-name> <key-type> <amount>";
-            case "give-random" -> correctUsage = commandOrder + "<key-type> <amount> <player-name>";
-            case "give", "take" -> correctUsage = commandOrder + "<key-type> <crate-name> <amount> <player-name>";
-            case "giveall" -> correctUsage = commandOrder + "<key-type> <crate-name> <amount>";
+        String usage = null;
+
+        switch (command) {
+            case "transfer" -> usage = order + " <crate_name> <player_name> <amount>";
+            case "set" -> usage = order + " <crate_name>";
+            case "debug" -> usage = order + " <crate_name> [player_name]";
+            case "open" -> usage = order + " <crate_name> <key_type>";
+            case "tp" -> usage = order + " <id>";
+            case "additem" -> usage = order + " <crate_name> <prize_number> <chance> [tier]";
+            case "preview", "forceopen" -> usage = order + " <crate_name> <player_name>";
+            case "open-others" -> usage = order + " <crate_name> <player_name> [key_type]";
+            case "mass-open" -> usage = order + " <crate_name> <key_type> <amount>";
+            case "give-random" -> usage = order + " <key_type> <amount> <player_name>";
+            case "give", "take" -> usage = order + " <key_type> <crate_name> <amount> <player_name>";
+            case "giveall" -> usage = order + " <key_type> <crate_name> <amount>";
+            case "migrate" -> usage = order + " <migration_type> [crate_name]";
+            case "respin-accept" -> usage = order + " <player> <crate_name> [prize_name]";
+            case "respin-deny" -> usage = order + " <player> <crate_name>";
+            case "respin-remove", "respin-add" -> usage = order + " <player> <crate_name> <amount>";
+            case "admin" -> usage = order;
         }
 
-        return correctUsage;
+        return usage;
     }
 
     @Override
     public void build() {
-        getBukkitCommandManager().registerMessage(MessageKey.TOO_MANY_ARGUMENTS, (sender, context) -> {
-            String command = context.getCommand();
-            String subCommand = context.getSubCommand();
+        this.commandManager.registerMessage(BukkitMessageKey.UNKNOWN_COMMAND, (sender, context) -> Messages.unknown_command.sendMessage(sender, "{command}", context.getInvalidInput()));
 
-            String commandOrder = "/" + command + " " + subCommand + " ";
+        this.commandManager.registerMessage(MessageKey.TOO_MANY_ARGUMENTS, (sender, context) -> {
+            Optional<String> meta = context.getMeta().get(MetaKey.NAME);
 
-            String correctUsage = null;
+            meta.ifPresent(key -> {
+                if (key.equalsIgnoreCase("view")) {
+                    Messages.correct_usage.sendMessage(sender, "{usage}", getContext(key, "/keys " + key));
 
-            switch (command) {
-                case "crates" -> correctUsage = getContext(subCommand, commandOrder);
-                case "keys" -> {
-                    if (subCommand.equals("view")) correctUsage = "/keys " + subCommand;
+                    return;
                 }
-            }
 
-            if (correctUsage != null) {
-                if (sender instanceof Player player) {
-                    send(sender, Messages.correct_usage.getMessage("%usage%", correctUsage, player));
-                } else {
-                    send(sender, Messages.correct_usage.getMessage("%usage%", correctUsage));
-                }
-            }
+                Messages.correct_usage.sendMessage(sender, "{usage}", getContext(key, "/crazycrates " + key));
+            });
         });
 
-        getBukkitCommandManager().registerMessage(MessageKey.NOT_ENOUGH_ARGUMENTS, (sender, context) -> {
-            String command = context.getCommand();
-            String subCommand = context.getSubCommand();
+        this.commandManager.registerMessage(MessageKey.NOT_ENOUGH_ARGUMENTS, (sender, context) -> {
+            Optional<String> meta = context.getMeta().get(MetaKey.NAME);
 
-            String commandOrder = "/" + command + " " + subCommand + " ";
+            meta.ifPresent(key -> {
+                if (key.equalsIgnoreCase("view")) {
+                    Messages.correct_usage.sendMessage(sender, "{usage}", getContext(key, "/keys " + key));
 
-            String correctUsage = null;
-
-            switch (command) {
-                case "crates" -> correctUsage = getContext(subCommand, commandOrder);
-                case "keys" -> {
-                    if (subCommand.equals("view")) correctUsage = "/keys " + subCommand + " <player-name>";
+                    return;
                 }
-            }
 
-            if (correctUsage != null) {
-                if (sender instanceof Player player) {
-                    send(sender, Messages.correct_usage.getMessage("%usage%", correctUsage, player));
-                } else {
-                    send(sender, Messages.correct_usage.getMessage("%usage%", correctUsage));
-                }
-            }
+                Messages.correct_usage.sendMessage(sender, "{usage}", getContext(key, "/crazycrates " + key));
+            });
         });
 
-        getBukkitCommandManager().registerMessage(MessageKey.UNKNOWN_COMMAND, (sender, context) -> {
-            if (sender instanceof Player player) {
-                send(sender, Messages.unknown_command.getMessage(player));
-            } else {
-                send(sender, Messages.unknown_command.getMessage());
-            }
-        });
-    }
+        this.commandManager.registerMessage(MessageKey.INVALID_ARGUMENT, (sender, context) -> Messages.correct_usage.sendMessage(sender, "{usage}", context.getSyntax()));
 
-    @Override
-    public void send(@NotNull CommandSender sender, @NotNull String component) {
-        sender.sendMessage(parse(component));
-    }
+        this.commandManager.registerMessage(BukkitMessageKey.NO_PERMISSION, (sender, context) -> Messages.no_permission.sendMessage(sender, "{permission}", context.getPermission().toString()));
 
-    @Override
-    public String parse(@NotNull String message) {
-        return MsgUtils.color(message);
+        this.commandManager.registerMessage(BukkitMessageKey.PLAYER_ONLY, (sender, context) -> Messages.must_be_a_player.sendMessage(sender));
+
+        this.commandManager.registerMessage(BukkitMessageKey.CONSOLE_ONLY, (sender, context) -> Messages.must_be_console_sender.sendMessage(sender));
     }
 }

@@ -1,46 +1,53 @@
 package com.badbones69.crazycrates.tasks.crates.types;
 
+import com.badbones69.crazycrates.api.builders.types.features.CrateSpinMenu;
+import com.badbones69.crazycrates.api.enums.misc.Files;
 import com.badbones69.crazycrates.api.objects.Crate;
 import com.badbones69.crazycrates.api.objects.Prize;
 import com.badbones69.crazycrates.api.PrizeManager;
-import org.bukkit.SoundCategory;
+import com.badbones69.crazycrates.api.objects.gui.GuiSettings;
+import com.badbones69.crazycrates.managers.events.enums.EventType;
+import com.ryderbelserion.vital.paper.util.scheduler.FoliaRunnable;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 import us.crazycrew.crazycrates.api.enums.types.KeyType;
 import com.badbones69.crazycrates.api.builders.CrateBuilder;
-import com.badbones69.crazycrates.api.utils.MiscUtils;
+import com.badbones69.crazycrates.utils.MiscUtils;
+import java.util.UUID;
 
 public class RouletteCrate extends CrateBuilder {
 
-
-    public RouletteCrate(Crate crate, Player player, int size) {
+    public RouletteCrate(@NotNull final Crate crate, @NotNull final Player player, final int size) {
         super(crate, player, size);
     }
 
     @Override
-    public void open(KeyType type, boolean checkHand) {
+    public void open(@NotNull final KeyType type, final boolean checkHand, final boolean isSilent, final EventType eventType) {
         // Crate event failed so we return.
-        if (isCrateEventValid(type, checkHand)) {
+        if (isCrateEventValid(type, checkHand, isSilent, eventType)) {
             return;
         }
 
-        boolean keyCheck = this.plugin.getCrazyHandler().getUserManager().takeKeys(1, getPlayer().getUniqueId(), getCrate().getName(), type, checkHand);
+        final Player player = getPlayer();
+        final UUID uuid = player.getUniqueId();
+        final Crate crate = getCrate();
+        final String fileName = crate.getFileName();
+
+        final boolean keyCheck = this.userManager.takeKeys(uuid, fileName, type, crate.useRequiredKeys() ? crate.getRequiredKeys() : 1, checkHand);
 
         if (!keyCheck) {
-            // Send the message about failing to take the key.
-            MiscUtils.failedToTakeKey(getPlayer(), getCrate());
-
             // Remove from opening list.
-            this.plugin.getCrateManager().removePlayerFromOpeningList(getPlayer());
+            this.crateManager.removePlayerFromOpeningList(player);
 
             return;
         }
 
-        setItem(13, getCrate().pickPrize(getPlayer()).getDisplayItem(getPlayer()));
+        setItem(13, getCrate().pickPrize(getPlayer()).getDisplayItem(player, crate));
 
-        addCrateTask(new BukkitRunnable() {
+        addCrateTask(new FoliaRunnable(player.getScheduler(), null) {
             int full = 0;
             int time = 1;
 
@@ -50,22 +57,27 @@ public class RouletteCrate extends CrateBuilder {
             @Override
             public void run() {
                 if (this.full <= 15) {
-                    setItem(13, getCrate().pickPrize(getPlayer()).getDisplayItem(getPlayer()));
+                    setItem(13, crate.pickPrize(player).getDisplayItem(player, crate));
                     setGlass();
 
-                    playSound("cycle-sound", SoundCategory.PLAYERS, "BLOCK_NOTE_BLOCK_XYLOPHONE");
+                    if (this.full >= 2) {
+                        playSound("cycle-sound", Sound.Source.PLAYER, "block.note_block.xylophone");
+                    }
+
                     this.even++;
 
                     if (this.even >= 4) {
                         this.even = 0;
-                        setItem(13, getCrate().pickPrize(getPlayer()).getDisplayItem(getPlayer()));
+
+                        setItem(13, crate.pickPrize(player).getDisplayItem(player, crate));
                     }
                 }
 
                 this.open++;
 
                 if (this.open >= 5) {
-                    getPlayer().openInventory(getInventory());
+                    player.openInventory(getInventory());
+
                     this.open = 0;
                 }
 
@@ -74,36 +86,47 @@ public class RouletteCrate extends CrateBuilder {
                 if (this.full > 16) {
                     if (MiscUtils.slowSpin(46, 9).contains(this.time)) {
                         setGlass();
-                        setItem(13, getCrate().pickPrize(getPlayer()).getDisplayItem(getPlayer()));
 
-                        playSound("cycle-sound", SoundCategory.PLAYERS, "BLOCK_NOTE_BLOCK_XYLOPHONE");
+                        setItem(13, crate.pickPrize(player).getDisplayItem(player, crate));
+
+                        playSound("cycle-sound", Sound.Source.PLAYER, "block.note_block.xylophone");
                     }
 
                     this.time++;
 
                     if (this.time >= 23) {
-                        playSound("stop-sound", SoundCategory.PLAYERS, "ENTITY_PLAYER_LEVELUP");
-                        plugin.getCrateManager().endCrate(getPlayer());
+                        playSound("stop-sound", Sound.Source.PLAYER, "entity.player.levelup");
 
-                        ItemStack item = getInventory().getItem(13);
+                        crateManager.endCrate(player);
+
+                        final ItemStack item = getInventory().getItem(13);
 
                         if (item != null) {
-                            Prize prize = getCrate().getPrize(item);
-                            PrizeManager.givePrize(getPlayer(), getCrate(), prize);
+                            Prize prize = crate.getPrize(item);
+
+                            if (crate.isCyclePrize() && !PrizeManager.isCapped(crate, player)) { // re-open this menu
+                                new CrateSpinMenu(player, new GuiSettings(crate, prize, Files.respin_gui.getConfiguration())).open();
+
+                                crateManager.removePlayerFromOpeningList(player);
+
+                                return;
+                            }
+
+                            PrizeManager.givePrize(player, crate, prize);
                         }
 
-                        plugin.getCrateManager().removePlayerFromOpeningList(getPlayer());
+                        crateManager.removePlayerFromOpeningList(player);
 
-                        new BukkitRunnable() {
+                        new FoliaRunnable(player.getScheduler(), null) {
                             @Override
                             public void run() {
-                                if (getPlayer().getOpenInventory().getTopInventory().equals(getInventory())) getPlayer().closeInventory(InventoryCloseEvent.Reason.UNLOADED);
+                                if (player.getOpenInventory().getTopInventory().equals(getInventory())) player.closeInventory(InventoryCloseEvent.Reason.UNLOADED);
                             }
-                        }.runTaskLater(plugin, 40);
+                        }.runDelayed(plugin, 40);
                     }
                 }
             }
-        }.runTaskTimer(this.plugin, 2, 2));
+        }.runAtFixedRate(this.plugin, 2, 2));
     }
 
     private void setGlass() {
@@ -112,10 +135,5 @@ public class RouletteCrate extends CrateBuilder {
                 setCustomGlassPane(slot);
             }
         }
-    }
-
-    @Override
-    public void run() {
-
     }
 }

@@ -2,181 +2,253 @@ package com.badbones69.crazycrates.api.enums;
 
 import ch.jalu.configme.SettingsManager;
 import ch.jalu.configme.properties.Property;
-import com.badbones69.crazycrates.api.utils.MiscUtils;
-import me.clip.placeholderapi.PlaceholderAPI;
+import com.badbones69.crazycrates.common.enums.State;
+import com.badbones69.crazycrates.utils.MiscUtils;
+import com.ryderbelserion.vital.common.utils.StringUtil;
+import com.ryderbelserion.vital.paper.util.AdvUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.bukkit.command.CommandSender;
+import com.badbones69.crazycrates.common.config.ConfigManager;
+import com.badbones69.crazycrates.common.config.impl.messages.CommandKeys;
+import com.badbones69.crazycrates.common.config.impl.messages.CrateKeys;
+import com.badbones69.crazycrates.common.config.impl.messages.ErrorKeys;
+import com.badbones69.crazycrates.common.config.impl.messages.MiscKeys;
+import com.badbones69.crazycrates.common.config.impl.messages.PlayerKeys;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import com.badbones69.crazycrates.common.config.ConfigManager;
-import com.badbones69.crazycrates.common.config.types.ConfigKeys;
-import com.badbones69.crazycrates.common.config.types.MessageKeys;
-import com.badbones69.crazycrates.common.utils.StringUtils;
-import com.badbones69.crazycrates.CrazyCrates;
-import com.badbones69.crazycrates.api.utils.MsgUtils;
+import com.badbones69.crazycrates.common.config.impl.ConfigKeys;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public enum Messages {
 
-    no_teleporting(MessageKeys.no_teleporting),
-    no_commands_while_in_crate(MessageKeys.no_commands_while_using_crate),
-    feature_disabled(MessageKeys.feature_disabled),
-    no_keys(MessageKeys.no_keys),
-    no_virtual_key(MessageKeys.no_virtual_key),
-    not_on_block(MessageKeys.not_on_block),
-    already_opening_crate(MessageKeys.already_opening_crate),
-    quick_crate_in_use(MessageKeys.quick_crate_in_use),
-    world_disabled(MessageKeys.world_disabled),
-    reloaded_plugin(MessageKeys.reloaded_plugin),
-    reloaded_forced_out_of_preview(MessageKeys.reloaded_forced_out_of_preview),
-    not_online(MessageKeys.not_online),
-    no_permission(MessageKeys.no_permission),
-    no_crate_permission(MessageKeys.no_crate_permission),
-    cant_be_a_virtual_crate(MessageKeys.cant_be_a_virtual_crate),
-    inventory_not_empty(MessageKeys.inventory_not_empty),
-    too_close_to_another_player(MessageKeys.too_close_to_another_player),
-    needs_more_room(MessageKeys.needs_more_room),
-    out_of_time(MessageKeys.out_of_time),
-    must_be_a_player(MessageKeys.must_be_a_player),
-    must_be_console_sender(MessageKeys.must_be_console_sender),
-    must_be_looking_at_block(MessageKeys.must_be_looking_at_block),
-    not_a_crate(MessageKeys.not_a_crate),
-    not_a_number(MessageKeys.not_a_number),
-    gave_a_player_keys(MessageKeys.gave_a_player_keys),
-    cannot_give_player_keys(MessageKeys.cannot_give_player_keys),
-    obtaining_keys(MessageKeys.obtaining_keys),
-    given_everyone_keys(MessageKeys.given_everyone_keys),
-    given_offline_player_keys(MessageKeys.given_offline_player_keys),
-    take_player_keys(MessageKeys.take_players_keys),
-    cannot_take_keys(MessageKeys.cannot_take_keys),
-    take_offline_player_keys(MessageKeys.take_offline_player_keys),
-    opened_a_crate(MessageKeys.opened_a_crate),
-    internal_error(MessageKeys.internal_error),
-    unknown_command(MessageKeys.unknown_command),
-    correct_usage(MessageKeys.correct_usage),
-    no_item_in_hand(MessageKeys.no_item_in_hand),
-    added_item_with_editor(MessageKeys.added_item_with_editor),
-    failed_to_add_item(MessageKeys.failed_to_add_item),
-    preview_disabled(MessageKeys.preview_disabled),
-    no_schematics_found(MessageKeys.no_schematics_found),
-    no_prizes_found(MessageKeys.no_prizes_found),
-    same_player(MessageKeys.same_player),
-    prize_error(MessageKeys.prize_error),
-    required_keys(MessageKeys.required_keys),
-    transfer_not_enough_keys(MessageKeys.transfer_not_enough_keys),
-    transfer_sent_keys(MessageKeys.transfer_sent_keys),
-    transfer_received_keys(MessageKeys.transfer_received_keys),
-    created_physical_crate(MessageKeys.created_physical_crate, true),
-    removed_physical_crate(MessageKeys.removed_physical_crate),
-    no_virtual_keys(MessageKeys.no_virtual_keys),
-    no_virtual_keys_header(MessageKeys.no_virtual_keys_header, true),
-    other_player_no_keys(MessageKeys.other_player_no_keys),
-    other_player_no_keys_header(MessageKeys.other_player_header, true),
-    per_crate(MessageKeys.per_crate),
-    help(MessageKeys.help, true),
-    admin_help(MessageKeys.admin_help, true);
+    no_teleporting(MiscKeys.no_teleporting),
+    no_commands_while_in_crate(MiscKeys.no_commands_while_using_crate),
+    feature_disabled(MiscKeys.feature_disabled),
+    unknown_command(MiscKeys.unknown_command),
+    correct_usage(MiscKeys.correct_usage),
+    no_keys(MiscKeys.no_keys),
+    no_virtual_key(MiscKeys.no_virtual_key),
+    internal_error(ErrorKeys.internal_error),
+    key_refund(ErrorKeys.key_refund),
+    no_schematics_found(ErrorKeys.no_schematics_found),
+    no_prizes_found(ErrorKeys.no_prizes_found),
+    prize_error(ErrorKeys.prize_error),
+    cannot_be_empty(ErrorKeys.cannot_be_empty),
+    cannot_be_air(ErrorKeys.cannot_be_air),
+    not_online(PlayerKeys.not_online),
+
+    no_permission(PlayerKeys.no_permission),
+    inventory_not_empty(PlayerKeys.inventory_not_empty),
+    too_close_to_another_player(PlayerKeys.too_close_to_another_player),
+    must_be_a_player(PlayerKeys.must_be_a_player),
+    must_be_console_sender(PlayerKeys.must_be_console_sender),
+    same_player(PlayerKeys.same_player),
+    must_be_looking_at_block(PlayerKeys.must_be_looking_at_block),
+    obtaining_keys(PlayerKeys.obtaining_keys),
+
+    cannot_set_type(CrateKeys.cannot_set_type),
+    not_on_block(CrateKeys.not_on_block),
+    already_opening_crate(CrateKeys.already_opening_crate),
+    crate_in_use(CrateKeys.crate_in_use),
+    already_redeemed_prize(CrateKeys.already_redeemed_prize),
+    world_disabled(CrateKeys.world_disabled),
+    no_crate_permission(CrateKeys.no_crate_permission),
+    cant_be_a_virtual_crate(CrateKeys.cant_be_a_virtual_crate),
+    needs_more_room(CrateKeys.needs_more_room),
+    out_of_time(CrateKeys.out_of_time),
+    not_a_crate(CrateKeys.not_a_crate),
+    not_a_key(CrateKeys.not_a_key),
+    not_a_number(CrateKeys.not_a_number),
+    preview_disabled(CrateKeys.preview_disabled),
+    not_enough_keys(CrateKeys.not_enough_keys),
+    created_physical_crate(CrateKeys.created_physical_crate, true),
+    physical_crate_already_exists(CrateKeys.physical_crate_already_exists),
+    removed_physical_crate(CrateKeys.removed_physical_crate),
+    crate_locations(CrateKeys.crate_locations, true),
+    crate_locations_format(CrateKeys.crate_location_format),
+    reloaded_forced_out_of_preview(CrateKeys.reloaded_forced_out_of_preview),
+    crate_teleported(CrateKeys.crate_teleported),
+    crate_cannot_teleport(CrateKeys.crate_cannot_teleport),
+    crate_prize_max_pulls(CrateKeys.crate_prize_max_pulls),
+    crate_prize_max_respins(CrateKeys.crate_prize_max_respins),
+    crate_prize_max_respins_left(CrateKeys.crate_prize_max_respins_left),
+    crate_prize_max_respins_none(CrateKeys.crate_prize_max_respins_none),
+
+    gave_a_player_keys(CommandKeys.gave_a_player_keys),
+    cannot_give_player_keys(CommandKeys.cannot_give_player_keys),
+    given_everyone_keys(CommandKeys.given_everyone_keys),
+    given_offline_player_keys(CommandKeys.given_offline_player_keys),
+    take_player_keys(CommandKeys.take_players_keys),
+    reloaded_plugin(CommandKeys.reloaded_plugin),
+    cannot_take_keys(CommandKeys.cannot_take_keys),
+    take_offline_player_keys(CommandKeys.take_offline_player_keys),
+    opened_a_crate(CommandKeys.opened_a_crate),
+    no_item_in_hand(CommandKeys.no_item_in_hand),
+    added_item_with_editor(CommandKeys.added_item_with_editor),
+    transfer_not_enough_keys(CommandKeys.transfer_not_enough_keys),
+    error_migrating(CommandKeys.error_migrating),
+    migration_not_available(CommandKeys.migration_not_available),
+    migration_plugin_not_enabled(CommandKeys.migration_plugin_not_enabled),
+    successfully_migrated(CommandKeys.successfully_migrated, true),
+    transfer_sent_keys(CommandKeys.transfer_sent_keys),
+    transfer_received_keys(CommandKeys.transfer_received_keys),
+    no_virtual_keys(CommandKeys.no_virtual_keys),
+    virtual_keys_header(CommandKeys.virtual_keys_header, true),
+    other_player_no_keys(CommandKeys.other_player_no_keys),
+    other_player_no_keys_header(CommandKeys.other_player_header, true),
+    per_crate(CommandKeys.per_crate),
+
+    help(CommandKeys.help, true),
+    admin_help(CommandKeys.admin_help, true);
 
     private Property<String> property;
 
-    private Property<List<String>> listProperty;
-
-    private String message;
-
+    private Property<List<String>> properties;
     private boolean isList = false;
 
-    /**
-     * Used for strings
-     *
-     * @param property the property
-     */
-    Messages(Property<String> property) {
+    Messages(@NotNull final Property<String> property) {
         this.property = property;
     }
 
-    /**
-     * Used for string lists
-     *
-     * @param listProperty the list property
-     * @param isList Defines if it's a list or not.
-     */
-    Messages(Property<List<String>> listProperty, boolean isList) {
-        this.listProperty = listProperty;
-
+    Messages(@NotNull final Property<List<String>> properties, final boolean isList) {
+        this.properties = properties;
         this.isList = isList;
     }
 
-    @NotNull
-    private final CrazyCrates plugin = CrazyCrates.get();
-    @NotNull
-    private final ConfigManager configManager = this.plugin.getCrazyHandler().getConfigManager();
-    @NotNull
-    private final SettingsManager configuration = this.configManager.getMessages();
+    private final SettingsManager config = ConfigManager.getConfig();
+
+    private final SettingsManager messages = ConfigManager.getMessages();
 
     private boolean isList() {
         return this.isList;
     }
 
-    private @NotNull List<String> getPropertyList(Property<List<String>> properties) {
-        return this.configuration.getProperty(properties);
+    public String getString() {
+        return this.messages.getProperty(this.property);
     }
 
-    private @NotNull String getProperty(Property<String> property) {
-        return this.configuration.getProperty(property);
+    public List<String> getList() {
+        return this.messages.getProperty(this.properties);
     }
 
-    public String getMessage(Map<String, String> placeholders) {
-        return getMessage(placeholders, null);
+    public String getMessage(@NotNull final CommandSender sender) {
+        return getMessage(sender, new HashMap<>());
     }
 
-    public String getMessage() {
-        return getMessage(new HashMap<>(), null);
+    public String getMessage(@NotNull final CommandSender sender, @NotNull final String placeholder, @NotNull final String replacement) {
+        Map<String, String> placeholders = new HashMap<>() {{
+            put(placeholder, replacement);
+        }};
+
+        return getMessage(sender, placeholders);
     }
 
-    public String getMessage(Player player) {
-        return getMessage(new HashMap<>(), player);
+    public String getMessage(@NotNull final CommandSender sender, @NotNull final Map<String, String> placeholders) {
+        return parse(sender, placeholders).replaceAll("\\{prefix}", this.config.getProperty(ConfigKeys.command_prefix));
     }
 
-    public String getMessage(String placeholder, String replacement, Player player) {
-        Map<String, String> placeholders = new HashMap<>();
-        placeholders.put(placeholder, replacement);
+    public void sendMessage(final CommandSender sender, final String placeholder, final String replacement) {
+        final State state = this.config.getProperty(ConfigKeys.message_state);
 
-        return getMessage(placeholders, player);
+        switch (state) {
+            case send_message -> sendRichMessage(sender, placeholder, replacement);
+            case send_actionbar -> sendActionBar(sender, placeholder, replacement);
+        }
     }
 
-    public String getMessage(String placeholder, String replacement) {
-        return getMessage(placeholder, replacement, null);
+    public void sendMessage(final CommandSender sender, final Map<String, String> placeholders) {
+        final State state = this.config.getProperty(ConfigKeys.message_state);
+
+        switch (state) {
+            case send_message -> sendRichMessage(sender, placeholders);
+            case send_actionbar -> sendActionBar(sender, placeholders);
+        }
     }
 
-    public String getMessage(Map<String, String> placeholders, Player player) {
-        // Get the string first.
+    public void sendMessage(final CommandSender sender) {
+        final State state = this.config.getProperty(ConfigKeys.message_state);
+
+        switch (state) {
+            case send_message -> sendRichMessage(sender);
+            case send_actionbar -> sendActionBar(sender);
+        }
+    }
+
+    public void sendActionBar(final CommandSender sender, final String placeholder, final String replacement) {
+        final String msg = getMessage(sender, placeholder, replacement);
+
+        if (msg.isEmpty() || msg.isBlank()) return;
+
+        if (sender instanceof Player player) {
+            player.sendActionBar(AdvUtil.parse(msg));
+        }
+    }
+
+    public void sendActionBar(final CommandSender sender, final Map<String, String> placeholders) {
+        final String msg = getMessage(sender, placeholders);
+
+        if (msg.isEmpty() || msg.isBlank()) return;
+
+        if (sender instanceof Player player) {
+            player.sendActionBar(AdvUtil.parse(msg));
+        }
+    }
+
+    public void sendActionBar(final CommandSender sender) {
+        final String msg = getMessage(sender);
+
+        if (msg.isEmpty() || msg.isBlank()) return;
+
+        if (sender instanceof Player player) {
+            player.sendActionBar(AdvUtil.parse(msg));
+        }
+    }
+
+    public void sendRichMessage(final CommandSender sender, final String placeholder, final String replacement) {
+        final String msg = getMessage(sender, placeholder, replacement);
+
+        if (msg.isEmpty() || msg.isBlank()) return;
+
+        sender.sendRichMessage(msg);
+    }
+
+    public void sendRichMessage(final CommandSender sender, final Map<String, String> placeholders) {
+        final String msg = getMessage(sender, placeholders);
+
+        if (msg.isEmpty() || msg.isBlank()) return;
+
+        sender.sendRichMessage(msg);
+    }
+
+    public void sendRichMessage(final CommandSender sender) {
+        final String msg = getMessage(sender);
+
+        if (msg.isEmpty() || msg.isBlank()) return;
+
+        sender.sendRichMessage(msg);
+    }
+
+    public void migrate() {
+        if (this.isList) {
+            this.messages.setProperty(this.properties, AdvUtil.convert(this.messages.getProperty(this.properties), true));
+
+            return;
+        }
+
+        this.messages.setProperty(this.property, AdvUtil.convert(this.messages.getProperty(this.property), true));
+    }
+
+    private @NotNull String parse(@NotNull final CommandSender sender, @NotNull final Map<String, String> placeholders) {
         String message;
 
         if (isList()) {
-            message = StringUtils.convertList(getPropertyList(this.listProperty));
+            message = StringUtils.chomp(StringUtil.convertList(getList()));
         } else {
-            message = getProperty(this.property);
+            message = getString();
         }
 
-        if (!placeholders.isEmpty()) {
-            for (Map.Entry<String, String> placeholder : placeholders.entrySet()) {
-                message = message.replace(placeholder.getKey(), placeholder.getValue()).replace(placeholder.getKey().toLowerCase(), placeholder.getValue());
-            }
-        }
-
-        this.message = message;
-
-        return asString(player);
-    }
-
-    private String asString(Player player) {
-        String prefix = this.configManager.getConfig().getProperty(ConfigKeys.command_prefix);
-
-        String message = this.message.replaceAll("%prefix%", prefix);
-
-        if (MiscUtils.isPapiActive() && player != null) {
-            return PlaceholderAPI.setPlaceholders(player, MsgUtils.color(message));
-        }
-
-        return MsgUtils.color(message);
+        return MiscUtils.populatePlaceholders(sender, message, placeholders);
     }
 }

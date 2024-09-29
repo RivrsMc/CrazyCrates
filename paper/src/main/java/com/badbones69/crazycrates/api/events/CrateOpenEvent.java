@@ -1,12 +1,13 @@
 package com.badbones69.crazycrates.api.events;
 
 import com.badbones69.crazycrates.api.objects.Crate;
-import org.bukkit.configuration.file.FileConfiguration;
+import com.badbones69.crazycrates.managers.events.enums.EventType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+import org.bukkit.configuration.file.YamlConfiguration;
 import us.crazycrew.crazycrates.api.enums.types.KeyType;
 
 public class CrateOpenEvent extends Event implements Cancellable {
@@ -15,11 +16,13 @@ public class CrateOpenEvent extends Event implements Cancellable {
     private final Crate crate;
     private final KeyType keyType;
     private final boolean checkHand;
-    private final FileConfiguration configuration;
+    private final YamlConfiguration configuration;
+    private final EventType eventType;
+    private final boolean isSilent;
 
     private boolean isCancelled;
 
-    public CrateOpenEvent(Player player, Crate crate, KeyType keyType, boolean checkHand, FileConfiguration configuration) {
+    public CrateOpenEvent(@NotNull final Player player, @NotNull final Crate crate, @NotNull final KeyType keyType, final boolean checkHand, @NotNull final YamlConfiguration configuration, boolean isSilent, final EventType eventType) {
         this.player = player;
         this.crate = crate;
 
@@ -27,8 +30,10 @@ public class CrateOpenEvent extends Event implements Cancellable {
         this.checkHand = checkHand;
 
         this.configuration = configuration;
+        this.eventType = eventType;
 
         this.isCancelled = false;
+        this.isSilent = isSilent;
     }
 
     private static final HandlerList handlers = new HandlerList();
@@ -42,33 +47,41 @@ public class CrateOpenEvent extends Event implements Cancellable {
         return handlers;
     }
 
-    public Player getPlayer() {
+    public @NotNull final Player getPlayer() {
         return this.player;
     }
 
-    public Crate getCrate() {
+    public @NotNull final Crate getCrate() {
         return this.crate;
     }
 
-    public KeyType getKeyType() {
+    public @NotNull final KeyType getKeyType() {
         return this.keyType;
     }
 
-    public boolean isCheckHand() {
+    public final boolean isCheckHand() {
         return this.checkHand;
     }
 
-    public FileConfiguration getConfiguration() {
+    public @NotNull final YamlConfiguration getConfiguration() {
         return this.configuration;
     }
 
+    public final boolean isSilent() {
+        return this.isSilent;
+    }
+
+    public final EventType getEventType() {
+        return this.eventType;
+    }
+
     @Override
-    public boolean isCancelled() {
+    public final boolean isCancelled() {
         return this.isCancelled;
     }
 
     @Override
-    public void setCancelled(boolean isCancelled) {
+    public void setCancelled(final boolean isCancelled) {
         this.isCancelled = isCancelled;
     }
 }

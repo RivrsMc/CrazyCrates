@@ -4,32 +4,48 @@ package us.crazycrew.crazycrates.api.enums.types;
  * An enum class that contains all our current key types.
  *
  * @author Ryder Belserion
- * @version 0.3
+ * @version 0.7
+ * @since 0.1
  */
 public enum KeyType {
-    
-    physical_key("physical_key"),
-    virtual_key("virtual_key"),
-    free_key("free_key");
-    
-    private final String name;
 
     /**
-     * A constructor to build a key type reference.
-     *
-     * @param name of the key-type
+     * A physical key
      */
-    KeyType(String name) {
+    physical_key("physical_key", "Physical Key"),
+    /**
+     * A virtual key
+     */
+    virtual_key("virtual_key", "Virtual Key"),
+    /**
+     * A free key
+     */
+    free_key("free_key", "Free Key");
+    
+    private final String name;
+    private final String friendlyName;
+
+    /**
+     * A constructor to build a {@link KeyType} reference.
+     *
+     * @param name name of the {@link KeyType}
+     * @since 0.1
+     */
+    KeyType(String name, String friendlyName) {
+        this.friendlyName = friendlyName;
         this.name = name;
     }
 
     /**
-     * Get the key type by name.
+     * Get the {@link KeyType} by name.
      *
-     * @param type the name of the key-type
-     * @return the type of key otherwise null
+     * @param type the name of the {@link KeyType}
+     * @return the {@link KeyType}
+     * @since 0.1
      */
     public static KeyType getFromName(String type) {
+        if (type.isEmpty()) return KeyType.virtual_key;
+
         if (type.equalsIgnoreCase("virtual") || type.equalsIgnoreCase("v")) {
             return KeyType.virtual_key;
         } else if (type.equalsIgnoreCase("physical") || type.equalsIgnoreCase("p")) {
@@ -38,13 +54,24 @@ public enum KeyType {
             return KeyType.free_key;
         }
 
-        return null;
+        return KeyType.virtual_key;
     }
 
     /**
-     * Get the name of the key type.
+     * Get a message friendly version of the {@link KeyType}.
      *
-     * @return the name of the key-type
+     * @return the name of the {@link KeyType}
+     * @since 0.1
+     */
+    public String getFriendlyName() {
+        return this.friendlyName;
+    }
+
+    /**
+     * Get the name of the {@link KeyType}.
+     *
+     * @return the name of the {@link KeyType}
+     * @since 0.1
      */
     public String getName() {
         return this.name;

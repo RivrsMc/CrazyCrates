@@ -1,51 +1,64 @@
 package com.badbones69.crazycrates.tasks.crates.types;
 
 import com.badbones69.crazycrates.api.objects.Crate;
+import com.badbones69.crazycrates.api.objects.crates.CrateLocation;
+import com.badbones69.crazycrates.managers.events.enums.EventType;
+import com.badbones69.crazycrates.support.holograms.HologramManager;
+import com.ryderbelserion.vital.paper.util.scheduler.FoliaRunnable;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 import us.crazycrew.crazycrates.api.enums.types.KeyType;
 import com.badbones69.crazycrates.api.builders.CrateBuilder;
-import com.badbones69.crazycrates.api.utils.MiscUtils;
+import com.badbones69.crazycrates.utils.MiscUtils;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class FireCrackerCrate extends CrateBuilder {
 
-    public FireCrackerCrate(Crate crate, Player player, int size, Location location) {
+    public FireCrackerCrate(@NotNull final Crate crate, @NotNull final Player player, final int size, @NotNull final Location location) {
         super(crate, player, size, location);
     }
 
     @Override
-    public void open(KeyType type, boolean checkHand) {
+    public void open(@NotNull final KeyType type, final boolean checkHand, final boolean isSilent, final EventType eventType) {
         // Crate event failed so we return.
-        if (isCrateEventValid(type, checkHand)) {
+        if (isCrateEventValid(type, checkHand, isSilent, eventType)) {
             return;
         }
 
-        this.plugin.getCrateManager().addCrateInUse(getPlayer(), getLocation());
+        final Player player = getPlayer();
+        final UUID uuid = player.getUniqueId();
+        final Crate crate = getCrate();
+        final String fileName = crate.getFileName();
 
-        boolean keyCheck = this.plugin.getCrazyHandler().getUserManager().takeKeys(1, getPlayer().getUniqueId(), getCrate().getName(), type, checkHand);
+        this.crateManager.addCrateInUse(player, getLocation());
+
+        final boolean keyCheck = this.userManager.takeKeys(uuid, fileName, type, crate.useRequiredKeys() ? crate.getRequiredKeys() : 1, checkHand);
 
         if (!keyCheck) {
-            // Send the message about failing to take the key.
-            MiscUtils.failedToTakeKey(getPlayer(), getCrate());
-
             // Remove from opening list.
-            this.plugin.getCrateManager().removePlayerFromOpeningList(getPlayer());
+            this.crateManager.removePlayerFromOpeningList(player);
 
             return;
         }
 
-        if (this.plugin.getCrateManager().getHolograms() != null) {
-            this.plugin.getCrateManager().getHolograms().removeHologram(getLocation().getBlock());
+        final HologramManager manager = this.crateManager.getHolograms();
+
+        if (manager != null && crate.getHologram().isEnabled()) {
+            CrateLocation crateLocation = this.crateManager.getCrateLocation(getLocation());
+
+            if (crateLocation != null) {
+                manager.removeHologram(crateLocation.getID());
+            }
         }
 
-        List<Color> colors = Arrays.asList(Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE, Color.BLACK, Color.AQUA, Color.MAROON, Color.PURPLE);
+        final List<Color> colors = Arrays.asList(Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE, Color.BLACK, Color.AQUA, Color.MAROON, Color.PURPLE);
 
-        addCrateTask(new BukkitRunnable() {
+        addCrateTask(new FoliaRunnable(player.getScheduler(), null) {
             final int random = ThreadLocalRandom.current().nextInt(colors.size());
             final Location location = getLocation().clone().add(.5, 25, .5);
 
@@ -54,22 +67,19 @@ public class FireCrackerCrate extends CrateBuilder {
             @Override
             public void run() {
                 this.location.subtract(0, 1, 0);
+
                 MiscUtils.spawnFirework(this.location, colors.get(this.random));
+
                 this.length++;
 
                 if (this.length == 25) {
-                    plugin.getCrateManager().endCrate(getPlayer());
+                    crateManager.endCrate(player);
 
-                    QuickCrate quickCrate = new QuickCrate(getCrate(), getPlayer(), getLocation());
+                    QuickCrate quickCrate = new QuickCrate(crate, player, getLocation());
 
-                    quickCrate.open(KeyType.free_key, false);
+                    quickCrate.open(KeyType.free_key, false, isSilent, eventType);
                 }
             }
-        }.runTaskTimer(this.plugin, 0, 2));
-    }
-
-    @Override
-    public void run() {
-
+        }.runAtFixedRate(this.plugin, 0, 2));
     }
 }

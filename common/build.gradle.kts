@@ -1,13 +1,10 @@
 plugins {
-    id("root-plugin")
+    `java-plugin`
 }
 
 dependencies {
     api(project(":api"))
 
-    api(libs.configme) {
-        exclude(group = "org.yaml", module = "snakeyaml")
-    }
-
-    compileOnly(libs.cluster.api)
+    compileOnly(libs.vital.common)
+    compileOnly(libs.jetbrains)
 }

@@ -1,10 +1,18 @@
 package com.badbones69.crazycrates.listeners;
 
-import com.badbones69.crazycrates.api.builders.types.CrateAdminMenu;
-import com.badbones69.crazycrates.api.builders.types.CrateMainMenu;
-import com.badbones69.crazycrates.api.builders.types.CratePreviewMenu;
-import com.badbones69.crazycrates.api.builders.types.CratePrizeMenu;
-import com.badbones69.crazycrates.tasks.InventoryManager;
+import com.badbones69.crazycrates.api.PrizeManager;
+import com.badbones69.crazycrates.api.builders.types.features.CrateSpinMenu;
+import com.badbones69.crazycrates.api.enums.misc.Files;
+import com.badbones69.crazycrates.api.objects.gui.GuiSettings;
+import com.badbones69.crazycrates.tasks.menus.CratePrizeMenu;
+import com.badbones69.crazycrates.api.objects.Crate;
+import com.badbones69.crazycrates.api.objects.Prize;
+import com.badbones69.crazycrates.api.objects.Tier;
+import com.badbones69.crazycrates.managers.BukkitUserManager;
+import com.badbones69.crazycrates.managers.InventoryManager;
+import com.badbones69.crazycrates.tasks.crates.other.CosmicCrateManager;
+import net.kyori.adventure.sound.Sound;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
@@ -16,39 +24,64 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.Inventory;
-import org.jetbrains.annotations.NotNull;
+import org.bukkit.inventory.ItemStack;
 import com.badbones69.crazycrates.tasks.crates.CrateManager;
 import us.crazycrew.crazycrates.api.enums.types.CrateType;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class MiscListener implements Listener {
 
-    @NotNull
-    private final CrazyCrates plugin = CrazyCrates.get();
+    private final CrazyCrates plugin = CrazyCrates.getPlugin();
 
-    @NotNull
     private final CrateManager crateManager = this.plugin.getCrateManager();
 
-    @NotNull
-    private final InventoryManager inventoryManager = this.plugin.getCrazyHandler().getInventoryManager();
+    private final BukkitUserManager userManager = this.plugin.getUserManager();
+
+    private final InventoryManager inventoryManager = this.plugin.getInventoryManager();
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
 
         // Set new keys if we have to.
         this.crateManager.setNewPlayerKeys(player);
 
         // Just in case any old data is in there.
-        this.plugin.getUserManager().loadOldOfflinePlayersKeys(player, this.crateManager.getUsableCrates());
+        this.userManager.loadOldOfflinePlayersKeys(player, this.crateManager.getUsableCrates());
 
         // Also add the new data.
-        this.plugin.getUserManager().loadOfflinePlayersKeys(player, this.crateManager.getUsableCrates());
+        this.userManager.loadOfflinePlayersKeys(player, this.crateManager.getUsableCrates());
+
+        /*final Map<Crate, Prize> prizes = new HashMap<>() {{
+            final UUID uuid = player.getUniqueId();
+
+            crateManager.getUsableCrates().forEach(crate -> {
+                final String fileName = crate.getFileName();
+
+                if (userManager.hasRespinPrize(uuid, fileName)) {
+                    put(crateManager.getCrateFromName(fileName), crate.getPrize(userManager.getRespinPrize(uuid, fileName)));
+                }
+            });
+        }};*/
+
+        final UUID uuid = player.getUniqueId();
+
+        for (final Crate crate : this.crateManager.getUsableCrates()) {
+            final String fileName = crate.getFileName();
+
+            if (crate.isCyclePrize() && this.userManager.hasRespinPrize(uuid, fileName)) {
+                new CrateSpinMenu(player, new GuiSettings(crate, crate.getPrize(this.userManager.getRespinPrize(uuid, fileName)), Files.respin_gui.getConfiguration())).open();
+            }
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerAttemptPickUp(PlayerAttemptPickupItemEvent event) {
         if (this.crateManager.isDisplayReward(event.getItem())) {
             event.setCancelled(true);
+
             return;
         }
 
@@ -63,11 +96,11 @@ public class MiscListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
 
-        this.inventoryManager.removeViewer(player);
-        this.inventoryManager.removeCrateViewer(player);
-        this.inventoryManager.removePageViewer(player);
+        this.inventoryManager.removePreviewViewer(player.getUniqueId());
+
+        this.crateManager.removeTier(player);
 
         this.crateManager.endQuickCrate(player, player.getLocation(), this.crateManager.getOpeningCrate(player), false);
 
@@ -79,6 +112,82 @@ public class MiscListener implements Listener {
         this.crateManager.removeHands(player);
         this.crateManager.removePicker(player);
         this.crateManager.removePlayerKeyType(player);
+
+        this.crateManager.removeSlot(player);
+    }
+
+    @EventHandler
+    public void onInventoryCloseEvent(InventoryCloseEvent event) {
+        final Inventory inventory = event.getInventory();
+
+        if (!(inventory.getHolder(false) instanceof CratePrizeMenu holder)) return;
+
+        final Player player = holder.getPlayer();
+
+        final Crate crate = this.crateManager.getOpeningCrate(player);
+
+        if (!this.crateManager.isInOpeningList(player) || crate == null) return;
+
+        switch (crate.getCrateType()) {
+            case war -> {
+                if (this.crateManager.hasCrateTask(player)) {
+                    this.crateManager.removeCloser(player);
+
+                    this.crateManager.removePlayerFromOpeningList(player);
+                    this.crateManager.removePlayerKeyType(player);
+
+                    this.crateManager.endCrate(player);
+                }
+            }
+
+            case cosmic -> {
+                final CosmicCrateManager crateManager = (CosmicCrateManager) crate.getManager();
+
+                boolean playSound = false;
+
+                if (holder.contains(" - Prizes")) {
+                    for (final Integer key : crateManager.getPrizes(player).keySet()) {
+                        final ItemStack item = inventory.getItem(key);
+
+                        if (item != null) {
+                            final Tier tier = this.crateManager.getTier(crate, item);
+
+                            if (tier != null) {
+                                Prize prize = crate.pickPrize(player, tier);
+
+                                for (int stop = 0; prize == null && stop <= 2000; stop++) {
+                                    prize = crate.pickPrize(player, tier);
+                                }
+
+                                PrizeManager.givePrize(player, prize, crate);
+
+                                playSound = true;
+                            }
+                        }
+                    }
+                }
+
+                // Play sound.
+                if (playSound) crate.playSound(player, player.getLocation(), "click-sound", "ui.button.click", Sound.Source.PLAYER);
+
+                // Remove opening stuff.
+                this.crateManager.removePlayerFromOpeningList(player);
+                this.crateManager.removePlayerKeyType(player);
+
+                this.crateManager.removeTier(player);
+
+                // Cancel crate task just in case.
+                this.crateManager.removeCrateTask(player);
+
+                // Remove hand checks.
+                this.crateManager.removeHands(player);
+
+                this.crateManager.removeSlot(player);
+
+                // Remove the player from the hashmap.
+                crateManager.removePickedPlayer(player);
+            }
+        }
     }
 
     @EventHandler
@@ -88,9 +197,9 @@ public class MiscListener implements Listener {
 
     @EventHandler
     public void onInventoryDragEvent(InventoryDragEvent event) {
-        Inventory inventory = event.getView().getTopInventory();
+        final Inventory inventory = event.getView().getTopInventory();
 
-        if (inventory.getHolder(false) instanceof CrateAdminMenu || inventory.getHolder(false) instanceof CrateMainMenu || inventory.getHolder(false) instanceof CratePreviewMenu || inventory.getHolder(false) instanceof CratePrizeMenu) {
+        if (inventory.getHolder(false) instanceof CratePrizeMenu) {
             event.setCancelled(true);
         }
     }

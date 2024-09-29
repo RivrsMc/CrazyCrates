@@ -1,28 +1,69 @@
-[versions]
-kyori_version = "4.14.0"
-
-shadow_version = "8.1.1"
-paperweight_version = "1.5.9"
-runpaper_version = "2.2.3"
-
-modrinth_version = "2.8.7"
-hangar_version = "0.1.2"
-
 [plugins]
-hangar = { id = "io.papermc.hangar-publish-plugin", version.ref = "hangar_version" }
-modrinth = { id = "com.modrinth.minotaur", version.ref = "modrinth_version" }
+paperweight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
+hangar = { id = "io.papermc.hangar-publish-plugin", version.ref = "hangar" }
+runPaper = { id = "xyz.jpenilla.run-paper", version.ref = "runPaper" }
+minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 
-paperweight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight_version" }
-runpaper = { id = "xyz.jpenilla.run-paper", version.ref = "runpaper_version" }
-shadowjar = { id = "com.github.johnrengelman.shadow", version.ref = "shadow_version" }
+[versions]
+# Paper API
+paper = "1.21.1-R0.1-SNAPSHOT"
+velocity = "3.3.0-SNAPSHOT"
+minecraft = "1.21.1"
+
+# Gradle Plugins
+paperweight = "1.7.2"
+runPaper = "2.3.0"
+minotaur = "2.+"
+hangar = "0.1.2"
+shadow = "8.3.0"
+
+# Plugins
+itemsadder = "3.6.3-beta-14"
+headdatabaseapi = "1.3.1"
+placeholderapi = "2.11.6"
+decentholograms = "2.8.8"
+fancyholograms = "2.2.0"
+oraxen = "1.171.0"
+vault = "1.7.1"
+
+# Libraries
+triumph-cmd = "2.0.0-ALPHA-10"
+jetbrains = "24.1.0"
+adventure = "4.17.0"
+vital-common = "0.0.4"
+vital-paper = "1.0.2"
 
 [libraries]
-adventure = { module = "net.kyori:adventure-api", version.ref = "kyori_version" }
-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "kyori_version" }
+velocity = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
+paper = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
 
-paperweight = { module = "io.papermc.paperweight:paperweight-userdev", version.ref = "paperweight_version" }
-shadowjar = { module = "com.github.johnrengelman:shadow", version.ref = "shadow_version" }
-runpaper = { module = "xyz.jpenilla:run-task", version.ref = "runpaper_version" }
+# Kyori
+kyori-logger = { module = "net.kyori:adventure-text-logger-slf4j", version.ref = "adventure" }
+kyori-text = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
+kyori-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
 
-hangar = { module = "io.papermc:hangar-publish-plugin", version.ref = "hangar_version" }
-modrinth = { module = "com.modrinth.minotaur:Minotaur", version.ref = "modrinth_version" }
+# Bukkit Plugins
+decent-holograms = { module = "com.github.decentsoftware-eu:decentholograms", version.ref = "decentholograms" }
+placeholderapi = { module = "com.github.PlaceholderAPI:PlaceholderAPI", version.ref = "placeholderapi" }
+headdatabaseapi = { module = "com.arcaniax:HeadDatabase-API", version.ref = "headdatabaseapi" }
+itemsadder = { module = "com.github.LoneDev6:api-itemsadder", version.ref = "itemsadder" }
+fancy-holograms = { module = "de.oliver:FancyHolograms", version.ref = "fancyholograms" }
+vault = { module = "com.github.MilkBowl:VaultAPI", version.ref = "vault" }
+oraxen = { module = "io.th0rgal:oraxen", version.ref = "oraxen" }
+
+# Crate Plugins
+excellentcrates = { module = "su.nightexpress.excellentcrates:ExcellentCrates", version = "5.3.1" }
+nightcore = { module = "su.nightexpress.nightcore:nightcore", version = "2.6.3" }
+
+# Libraries
+triumph-cmds = { module = "dev.triumphteam:triumph-cmd-bukkit", version.ref = "triumph-cmd" }
+
+vital-common = { module = "com.ryderbelserion.vital:common", version.ref = "vital-common" }
+vital-paper = { module = "com.ryderbelserion.vital:paper", version.ref = "vital-paper" }
+
+jetbrains = { module = "org.jetbrains:annotations", version.ref = "jetbrains" }
+
+[bundles]
+holograms = ["decent-holograms", "fancy-holograms"]
+items = ["itemsadder", "oraxen"]

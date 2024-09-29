@@ -1,6 +1,8 @@
 package com.badbones69.crazycrates.tasks.crates.other.quadcrates;
 
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SessionManager {
 
@@ -10,11 +12,11 @@ public class SessionManager {
      * @param player player to check.
      * @return true or false.
      */
-    public boolean inSession(Player player) {
+    public final boolean inSession(@NotNull final Player player) {
         if (QuadCrateManager.getCrateSessions().isEmpty()) return false;
 
         for (QuadCrateManager quadCrateManager : QuadCrateManager.getCrateSessions()) {
-            if (quadCrateManager.getPlayer().getUniqueId() == player.getUniqueId()) return true;
+            if (quadCrateManager.getPlayer().getUniqueId().equals(player.getUniqueId())) return true;
         }
 
         return false;
@@ -26,9 +28,9 @@ public class SessionManager {
      * @param player player to check.
      * @return crate session or null.
      */
-    public QuadCrateManager getSession(Player player) {
+    public @Nullable final QuadCrateManager getSession(@NotNull final Player player) {
         for (QuadCrateManager quadCrateManager : QuadCrateManager.getCrateSessions()) {
-            if (quadCrateManager.getPlayer().getUniqueId() == player.getUniqueId()) return quadCrateManager;
+            if (quadCrateManager.getPlayer().getUniqueId().equals(player.getUniqueId())) return quadCrateManager;
         }
 
         return null;
@@ -39,7 +41,7 @@ public class SessionManager {
      */
     public static void endCrates() {
         if (!QuadCrateManager.getCrateSessions().isEmpty()) {
-            QuadCrateManager.getCrateSessions().forEach(session -> session.endCrateForce(false));
+            QuadCrateManager.getCrateSessions().forEach(session -> session.endCrate(true));
             QuadCrateManager.getCrateSessions().clear();
         }
     }

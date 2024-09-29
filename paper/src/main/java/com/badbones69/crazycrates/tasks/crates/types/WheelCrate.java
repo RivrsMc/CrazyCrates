@@ -1,46 +1,53 @@
 package com.badbones69.crazycrates.tasks.crates.types;
 
+import com.badbones69.crazycrates.api.builders.types.features.CrateSpinMenu;
+import com.badbones69.crazycrates.api.enums.misc.Files;
 import com.badbones69.crazycrates.api.objects.Crate;
 import com.badbones69.crazycrates.api.objects.Prize;
 import com.badbones69.crazycrates.api.PrizeManager;
+import com.badbones69.crazycrates.api.objects.gui.GuiSettings;
+import com.badbones69.crazycrates.managers.events.enums.EventType;
+import com.ryderbelserion.vital.paper.util.scheduler.FoliaRunnable;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.Material;
-import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 import us.crazycrew.crazycrates.api.enums.types.KeyType;
 import com.badbones69.crazycrates.api.builders.CrateBuilder;
-import com.badbones69.crazycrates.api.utils.MiscUtils;
+import com.badbones69.crazycrates.utils.MiscUtils;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.HashMap;
 
 public class WheelCrate extends CrateBuilder {
 
-    public WheelCrate(Crate crate, Player player, int size) {
+    public WheelCrate(@NotNull final Crate crate, @NotNull final Player player, final int size) {
         super(crate, player, size);
     }
 
-    private final HashMap<UUID, HashMap<Integer, ItemStack>> rewards = new HashMap<>();
+    private Map<Integer, ItemStack> rewards;
 
     @Override
-    public void open(KeyType type, boolean checkHand) {
+    public void open(@NotNull final KeyType type, final boolean checkHand, final boolean isSilent, final EventType eventType) {
         // Crate event failed so we return.
-        if (isCrateEventValid(type, checkHand)) {
+        if (isCrateEventValid(type, checkHand, isSilent, eventType)) {
             return;
         }
 
-        boolean keyCheck = this.plugin.getCrazyHandler().getUserManager().takeKeys(1, getPlayer().getUniqueId(), getCrate().getName(), type, checkHand);
+        final Player player = getPlayer();
+        final UUID uuid = player.getUniqueId();
+        final Crate crate = getCrate();
+        final String fileName = crate.getFileName();
+
+        boolean keyCheck = this.userManager.takeKeys(uuid, fileName, type, crate.useRequiredKeys() ? crate.getRequiredKeys() : 1, checkHand);
 
         if (!keyCheck) {
-            // Send the message about failing to take the key.
-            MiscUtils.failedToTakeKey(getPlayer(), getCrate());
-
             // Remove from opening list.
-            this.plugin.getCrateManager().removePlayerFromOpeningList(getPlayer());
+            this.crateManager.removePlayerFromOpeningList(player);
 
             return;
         }
@@ -49,19 +56,21 @@ public class WheelCrate extends CrateBuilder {
             setCustomGlassPane(index);
         }
 
-        HashMap<Integer, ItemStack> items = new HashMap<>();
+        this.rewards = new HashMap<>();
 
         for (int number : getBorder()) {
-            Prize prize = getCrate().pickPrize(getPlayer());
-            setItem(number, prize.getDisplayItem(getPlayer()));
-            items.put(number, prize.getDisplayItem(getPlayer()));
+            final Prize prize = crate.pickPrize(player);
+
+            setItem(number, prize.getDisplayItem(player, crate));
+
+            this.rewards.put(number, prize.getDisplayItem(player, crate));
         }
 
-        this.rewards.put(getPlayer().getUniqueId(), items);
+        player.openInventory(getInventory());
 
-        getPlayer().openInventory(getInventory());
+        final Material material = Material.LIME_STAINED_GLASS_PANE;
 
-        addCrateTask(new BukkitRunnable() {
+        addCrateTask(new FoliaRunnable(player.getScheduler(), null) {
             final List<Integer> slots = getBorder();
 
             int uh = 0;
@@ -81,13 +90,13 @@ public class WheelCrate extends CrateBuilder {
 
                 if (this.what >= 18) this.what = 0;
 
-                if (this.full < this.timer) lore();
+                if (this.full < this.timer) {
+                    populateMenu();
+                }
 
                 if (this.full >= this.timer) {
-                    if (MiscUtils.slowSpin(46, 9).contains(this.slower)) lore();
-
-                    if (this.full == this.timer + 47) {
-                        playSound("stop-sound", SoundCategory.PLAYERS, "ENTITY_PLAYER_LEVELUP");
+                    if (MiscUtils.slowSpin(46, 9).contains(this.slower)) {
+                        populateMenu();
                     }
 
                     if (this.full >= this.timer + 47) {
@@ -102,20 +111,31 @@ public class WheelCrate extends CrateBuilder {
                         }
                     }
 
+                    // Crate is done.
                     if (this.full >= (this.timer + 55 + 47)) {
                         Prize prize = null;
 
-                        if (plugin.getCrateManager().isInOpeningList(getPlayer())) {
-                            prize = getCrate().getPrize(rewards.get(getPlayer().getUniqueId()).get(this.slots.get(this.what)));
+                        if (crateManager.isInOpeningList(player)) {
+                            prize = crate.getPrize(rewards.get(this.slots.get(this.what)));
                         }
 
-                        PrizeManager.givePrize(getPlayer(), getCrate(), prize);
+                        if (crate.isCyclePrize() && !PrizeManager.isCapped(crate, player)) { // re-open this menu
+                            new CrateSpinMenu(player, new GuiSettings(crate, prize, Files.respin_gui.getConfiguration())).open();
 
-                        playSound("stop-sound", SoundCategory.PLAYERS, "ENTITY_PLAYER_LEVELUP");
+                            return;
+                        }
 
-                        getPlayer().closeInventory(InventoryCloseEvent.Reason.UNLOADED);
-                        plugin.getCrateManager().removePlayerFromOpeningList(getPlayer());
-                        plugin.getCrateManager().endCrate(getPlayer());
+                        PrizeManager.givePrize(player, crate, prize);
+
+                        playSound("stop-sound", Sound.Source.PLAYER, "entity.player.levelup");
+
+                        player.closeInventory(InventoryCloseEvent.Reason.UNLOADED);
+
+                        crateManager.removePlayerFromOpeningList(player);
+                        crateManager.endCrate(player);
+
+                        // Clear it because why not.
+                        rewards.clear();
                     }
 
                     this.slower++;
@@ -125,48 +145,30 @@ public class WheelCrate extends CrateBuilder {
                 this.open++;
 
                 if (this.open > 5) {
-                    getPlayer().openInventory(getInventory());
+                    player.openInventory(getInventory());
+
                     this.open = 0;
                 }
             }
 
-            private void lore() {
-                HashMap<Integer, ItemStack> map = rewards.get(getPlayer().getUniqueId());
+            private void populateMenu() {
+                @NotNull ItemStack itemStack = rewards.get(this.slots.get(this.uh));
 
-                int slot = this.slots.get(this.uh);
+                setItem(this.slots.get(this.uh), itemStack.withType(material));
 
-                ItemStack item = map.get(slot);
+                int otherSlot = this.slots.get(this.what);
 
-                ItemMeta itemMeta = item.getItemMeta();
+                setItem(this.slots.get(this.what), rewards.get(otherSlot));
 
-                boolean hasLore = item.getItemMeta().hasLore();
+                playSound("cycle-sound", Sound.Source.PLAYER, "block.note_block.xylophone");
 
-                Material material = Material.LIME_STAINED_GLASS_PANE;
-
-                String name = itemMeta.getDisplayName();
-
-                if (hasLore) {
-                    setItem(slot, material, name, itemMeta.getLore());
-                } else {
-                    setItem(slot, material, name);
-                }
-
-                int other = this.slots.get(this.what);
-
-                setItem(other, map.get(other));
-                playSound("cycle-sound", SoundCategory.MUSIC, "BLOCK_NOTE_BLOCK_XYLOPHONE");
                 this.uh++;
                 this.what++;
             }
-        }.runTaskTimer(this.plugin, 1, 1));
+        }.runAtFixedRate(this.plugin, 1, 1));
     }
 
     private List<Integer> getBorder() {
-        return Arrays.asList(10, 11, 12, 13, 14, 15, 16, 19, 25, 28, 34, 37, 38, 39, 40, 41, 42, 43);
-    }
-
-    @Override
-    public void run() {
-
+        return Arrays.asList(10, 11, 12, 13, 14, 15, 16, 25, 34, 43, 42, 41, 40, 39, 38, 37, 28, 19);
     }
 }

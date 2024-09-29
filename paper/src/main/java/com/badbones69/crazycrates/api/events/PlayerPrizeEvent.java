@@ -14,12 +14,17 @@ public class PlayerPrizeEvent extends Event {
     private final Crate crate;
     private final Prize prize;
     private final String crateName;
-    
-    public PlayerPrizeEvent(Player player, Crate crate, String crateName, Prize prize) {
+
+    @Deprecated(since = "3.7.4", forRemoval = true)
+    public PlayerPrizeEvent(@NotNull final Player player, @NotNull final Crate crate, @NotNull final String crateName, @NotNull final Prize prize) {
         this.player = player;
         this.crate = crate;
         this.prize = prize;
         this.crateName = crateName;
+    }
+
+    public PlayerPrizeEvent(@NotNull final Player player, @NotNull final Crate crate, @NotNull final Prize prize) {
+        this(player, crate, crate.getFileName(), prize);
     }
     
     public static HandlerList getHandlerList() {
@@ -30,19 +35,19 @@ public class PlayerPrizeEvent extends Event {
         return handlers;
     }
     
-    public Player getPlayer() {
+    public @NotNull final Player getPlayer() {
         return this.player;
     }
     
-    public Crate getCrate() {
+    public @NotNull final Crate getCrate() {
         return this.crate;
     }
     
-    public String getCrateName() {
+    public @NotNull final String getCrateName() {
         return this.crateName;
     }
     
-    public Prize getPrize() {
+    public @NotNull final Prize getPrize() {
         return this.prize;
     }
 }
